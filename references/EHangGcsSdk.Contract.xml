@@ -1,0 +1,1180 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>EHangGcsSdk.Contract</name>
+    </assembly>
+    <members>
+        <member name="T:EHang.Communication.IConnection">
+            <summary>
+            定义与远程主机通信的方法。
+            </summary>
+        </member>
+        <member name="E:EHang.Communication.IConnection.ExceptionThrown">
+            <summary>
+            在不宜抛出的异常发生时引发的事件。
+            </summary>
+        </member>
+        <member name="P:EHang.Communication.IConnection.IsOpen">
+            <summary>
+            获取一个值，指示通信是否已开启。
+            </summary>
+        </member>
+        <member name="M:EHang.Communication.IConnection.Close">
+            <summary>
+            关闭通信。
+            </summary>
+        </member>
+        <member name="M:EHang.Communication.IConnection.OpenAsync">
+            <summary>
+            开启通信。
+            </summary>
+            <returns>表示此异步操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Communication.IConnection.ReadAsync(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            异步读取数据。顺利完成时将正好读取 <paramref name="count"/> 个字节。
+            </summary>
+            <param name="buffer">存放数据的缓冲区。</param>
+            <param name="offset">起始下标。</param>
+            <param name="count">要读取的字节数。</param>
+            <returns>包含成功读取的字节数的 <see cref="T:System.Threading.Tasks.Task`1"/> 实例。此数目在操作顺利完成时保证与 <paramref name="count"/> 等，否则为 0。</returns>
+        </member>
+        <member name="M:EHang.Communication.IConnection.WriteAsync(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            异步写入数据。会抛异常。
+            </summary>
+            <param name="buffer">存放数据的缓冲区。</param>
+            <param name="offset">起始下标。</param>
+            <param name="count">要写入的字节数。</param>
+            <returns>表示此异步操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="P:EHang.CopterControllers.ICopterController.IsEnabled">
+            <summary>
+            获取或设置一个值，指示是否激活此控制器。
+            </summary>
+        </member>
+        <member name="P:EHang.CopterManagement.ICopterManager.AllCopters">
+            <summary>
+            获取 <see cref="T:EHang.Copters.ICopter"/> 实例的动态集合。
+            </summary>
+        </member>
+        <member name="P:EHang.CopterManagement.ICopterManager.Copter">
+            <summary>
+            获取单个 <see cref="T:EHang.Copters.ICopter"/> 实例。用 <see cref="!:EmptyCopter.Instance"/> 代替 null，使用时不必判断是否为 null。
+            </summary>
+        </member>
+        <member name="P:EHang.CopterManagement.ICopterManager.IsSearching">
+            <summary>
+            获取一个值，指示是否正在搜寻飞行器。
+            </summary>
+        </member>
+        <member name="P:EHang.CopterManagement.ICopterManager.SelectedCopters">
+            <summary>
+            获取被选中的 <see cref="T:EHang.Copters.ICopter"/> 实例的动态集合。
+            </summary>
+        </member>
+        <member name="M:EHang.CopterManagement.ICopterManager.AddOrUpdateCopterAsync(System.String,System.String,EHang.Communication.IConnection)">
+            <summary>
+            添加或更新 <see cref="T:EHang.Copters.ICopter"/> 实例。
+            </summary>
+            <param name="id">飞行器的唯一 ID。</param>
+            <param name="name">飞行器的名字。</param>
+            <param name="connection">用于通信的 <see cref="T:EHang.Communication.IConnection"/> 实例。</param>
+            <returns></returns>
+        </member>
+        <member name="M:EHang.CopterManagement.ICopterManager.CheckStatusAndFlyToAsync(System.Double,System.Double)">
+            <summary>
+            检查飞行器的状态，判断是否允许 FlyTo，若允许，飞往指定位置。
+            </summary>
+            <param name="lat">目的地纬度。</param>
+            <param name="lng">目的地经度。</param>
+            <returns>若允许并执行了 FlyTo，返回 true；否则返回 false。</returns>
+        </member>
+        <member name="M:EHang.CopterManagement.ICopterManager.ConnectAsync(EHang.Copters.ICopter)">
+            <summary>
+            连接一个新的 <see cref="T:EHang.Copters.ICopter"/> 实例。
+            </summary>
+            <param name="copter">要连接的 <see cref="T:EHang.Copters.ICopter"/> 实例。</param>
+            <returns>表示此异步操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.CopterManagement.ICopterManager.StartSearching">
+            <summary>
+            开始搜索并连接飞行器。
+            </summary>
+        </member>
+        <member name="M:EHang.CopterManagement.ICopterManager.StopSearching">
+            <summary>
+            停止搜索飞行器。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.Constants.MAX_ACCEL">
+            <summary>
+            最高加速度，单位为 m/s2。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.Constants.MAX_TILT_IN_FLIGHT">
+            <summary>
+            飞行过程中的最大倾斜角度。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.Constants.MAX_VEL">
+            <summary>
+            最高速度，单位为 m/s。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.EHObservableObject">
+            <summary>
+            A base class for objects of which the properties must be observable (based on MvvmLight's ObservableObject).
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.EHObservableObject._uiSyncContext">
+            <summary>
+            与 UI 线程关联的 <see cref="T:System.Threading.SynchronizationContext"/> 实例。
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.#ctor(System.Threading.SynchronizationContext)">
+            <summary>
+            创建 <see cref="T:EHang.Copters.EHObservableObject"/> 的实例。
+            </summary>
+            <param name="uiSyncContext"></param>
+        </member>
+        <member name="E:EHang.Copters.EHObservableObject.PropertyChanged">
+            <summary>
+            Occurs after a property value changes.
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.EHObservableObject.PropertyChangedHandler">
+            <summary>
+            Provides access to the PropertyChanged event handler to derived classes.
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.VerifyPropertyName(System.String)">
+            <summary>
+            Verifies that a property name exists in this ViewModel. This method
+            can be called before the property is used, for instance before
+            calling RaisePropertyChanged. It avoids errors when a property name
+            is changed but some places are missed.
+            </summary>
+            <remarks>This method is only active in DEBUG mode.</remarks>
+            <param name="propertyName">The name of the property that will be
+            checked.</param>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.RaisePropertyChanged(System.String)">
+            <summary>
+            Raises the PropertyChanged event if needed.
+            </summary>
+            <remarks>If the propertyName parameter
+            does not correspond to an existing property on the current class, an
+            exception is thrown in DEBUG configuration only.</remarks>
+            <param name="propertyName">(optional) The name of the property that
+            changed.</param>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.RaisePropertyChanged``1(System.Linq.Expressions.Expression{System.Func{``0}})">
+            <summary>
+            Raises the PropertyChanged event if needed.
+            </summary>
+            <typeparam name="T">The type of the property that
+            changed.</typeparam>
+            <param name="propertyExpression">An expression identifying the property
+            that changed.</param>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.GetPropertyName``1(System.Linq.Expressions.Expression{System.Func{``0}})">
+            <summary>
+            Extracts the name of a property from an expression.
+            </summary>
+            <typeparam name="T">The type of the property.</typeparam>
+            <param name="propertyExpression">An expression returning the property's name.</param>
+            <returns>The name of the property returned by the expression.</returns>
+            <exception cref="T:System.ArgumentNullException">If the expression is null.</exception>
+            <exception cref="T:System.ArgumentException">If the expression does not represent a property.</exception>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.Set``1(System.Linq.Expressions.Expression{System.Func{``0}},``0@,``0)">
+            <summary>
+            Assigns a new value to the property. Then, raises the
+            PropertyChanged event if needed. 
+            </summary>
+            <typeparam name="T">The type of the property that
+            changed.</typeparam>
+            <param name="propertyExpression">An expression identifying the property
+            that changed.</param>
+            <param name="field">The field storing the property's value.</param>
+            <param name="newValue">The property's value after the change
+            occurred.</param>
+            <returns>True if the PropertyChanged event has been raised,
+            false otherwise. The event is not raised if the old
+            value is equal to the new value.</returns>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.Set``1(System.String,``0@,``0)">
+            <summary>
+            Assigns a new value to the property. Then, raises the
+            PropertyChanged event if needed. 
+            </summary>
+            <typeparam name="T">The type of the property that
+            changed.</typeparam>
+            <param name="propertyName">The name of the property that
+            changed.</param>
+            <param name="field">The field storing the property's value.</param>
+            <param name="newValue">The property's value after the change
+            occurred.</param>
+            <returns>True if the PropertyChanged event has been raised,
+            false otherwise. The event is not raised if the old
+            value is equal to the new value.</returns>
+        </member>
+        <member name="M:EHang.Copters.EHObservableObject.Set``1(``0@,``0,System.String)">
+            <summary>
+            Assigns a new value to the property. Then, raises the
+            PropertyChanged event if needed. 
+            </summary>
+            <typeparam name="T">The type of the property that
+            changed.</typeparam>
+            <param name="field">The field storing the property's value.</param>
+            <param name="newValue">The property's value after the change
+            occurred.</param>
+            <param name="propertyName">(optional) The name of the property that
+            changed.</param>
+            <returns>True if the PropertyChanged event has been raised,
+            false otherwise. The event is not raised if the old
+            value is equal to the new value.</returns>
+        </member>
+        <member name="T:EHang.Copters.FlightCommand">
+            <summary>
+            在自动飞行任务中使用的命令枚举，指定飞行器应执行的动作。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.FlightCommand.Waypoint">
+            <summary>
+            命令飞行器飞往指定位置。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.FlightCommand.LoiterTurns">
+            <summary>
+            命令飞行器在指定位置盘旋指定圈数。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.FlightCommand.LoiterTime">
+            <summary>
+            命令飞行器在指定位置盘旋指定时间。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.FlightCommand.ReturnToLaunch">
+            <summary>
+            命令飞行器返航。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.FlightCommand.Land">
+            <summary>
+            命令飞行器降落。
+            </summary>
+        </member>
+        <member name="F:EHang.Copters.FlightCommand.TakeOff">
+            <summary>
+            命令飞行器起飞。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.IAttitude">
+            <summary>
+            定义用于获取三维空间中飞行器姿态的属性。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IAttitude.Heading">
+            <summary>
+            获取机头方向，其范围为 [0, 360)。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IAttitude.Pitch">
+            <summary>
+            获取俯仰角度，其范围为 (-180, 180]，正常飞行中的范围为 [-45, 45]。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IAttitude.Roll">
+            <summary>
+            获取横滚角度，其范围为 (-180, 180]，正常飞行中的范围为 [-45, 45]。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IAttitude.Yaw">
+            <summary>
+            获取偏航角度，其范围为 (-180, 180]。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.ICopterActions">
+            <summary>
+            定义用于操纵飞行器的属性和方法。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel1">
+            <summary>
+            获取或设置目标通道 1。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel2">
+            <summary>
+            获取或设置目标通道 2。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel3">
+            <summary>
+            获取或设置目标通道 3。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel4">
+            <summary>
+            获取或设置目标通道 4。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel5">
+            <summary>
+            获取或设置目标通道 5。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel6">
+            <summary>
+            获取或设置目标通道 6。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel7">
+            <summary>
+            获取或设置目标通道 7。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredChannel8">
+            <summary>
+            获取或设置目标通道 8。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.DesiredYaw">
+            <summary>
+            获取或设置目标偏航。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterActions.IsEmergencyHoverActive">
+            <summary>
+            获取一个值，指示飞行器是否正处于紧急悬停状态。
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.ConnectAsync">
+            <summary>
+            开启与飞行器之间的连接。
+            </summary>
+            <returns>表示此异步操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.Follow(EHang.Copters.IVisibleStatus,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            跟随。
+            </summary>
+            <param name="target">目标。</param>
+            <param name="keepYawDifference">设为 true 进保持偏航角度差，设为 false 时将保持两者在空间中的相对位置。</param>
+            <param name="keepFacingTarget">是否保持机头面对目标。</param>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.GetCopterDataAsync">
+            <summary>
+            向飞行器请求数据。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.GetParamAsync(System.String,System.Int32)">
+            <summary>
+            获取参数的值。
+            </summary>
+            <param name="paramName">参数名。</param>
+            <param name="millisecondsTimeout">超时时间，单位为毫秒。</param>
+            <returns>表示参数获取异步操作的 <see cref="T:System.Threading.Tasks.Task`1"/>，其结果即为参数的值。</returns>
+            <exception cref="T:System.TimeoutException">操作超时。</exception>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.SetChannelsAsync">
+            <summary>
+            把所有通道设置为目标值。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.SetMobileControlAsync">
+            <summary>
+            用各个目标值属性设置通道和偏航。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.SetParamAsync(System.String,System.Single,System.Int32)">
+            <summary>
+            设置参数，返回的 <see cref="T:System.Threading.Tasks.Task"/> 实例在确认设置成功后完成。
+            </summary>
+            <param name="paramName">参数名。</param>
+            <param name="value">值。</param>
+            <param name="millisecondsTimeout">超时时间，单位为毫秒。</param>
+            <returns>表示异步设置参数操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+            <exception cref="T:System.TimeoutException">操作超时。</exception>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.StartPairingAsync">
+            <summary>
+            开始对频。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActions.StopPairingAsync">
+            <summary>
+            停止对频。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.DisconnectAsync">
+            <summary>
+            断开与飞行器之间的连接。
+            </summary>
+            <returns>表示此异步操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.FloatAsync">
+            <summary>
+            切换到 <see cref="F:EHang.Copters.CopterState.FloatMode"/> 并向各个控制通道发中间值。飞行器可能受风等外力影响而在水平方向上飘动。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.FlyToAsync(System.Double,System.Double)">
+            <summary>
+            使飞行器飞往水平面上指定的点。
+            </summary>
+            <param name="lat">纬度。</param>
+            <param name="lng">经度。</param>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.FlyToAsync(System.Double,System.Double,System.Single)">
+            <summary>
+            使飞行器飞往指定的点。
+            </summary>
+            <param name="lat">纬度。</param>
+            <param name="lng">经度。</param>
+            <param name="alt">相对于解锁点的高度。</param>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.HoverAsync">
+            <summary>
+            切换到 <see cref="F:EHang.Copters.CopterState.HoverMode"/> 并悬停。此操作需要使用 GPS 定位，卫星数不足导致定位不准时非常危险。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.LandAsync">
+            <summary>
+            降落。此操作需要使用 GPS 定位，卫星数不足导致定位不准时非常危险。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.LockAsync">
+            <summary>
+            锁定飞行器（停止电机转动）。在调用之前务必判断高度及让软件使用者确认！
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.ReturnToLaunchAsync">
+            <summary>
+            返航。此操作需要使用 GPS 定位，卫星数不足导致定位不准时非常危险。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.SetChannelsAsync(System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16})">
+            <summary>
+            用指定的值设置通道。
+            </summary>
+            <param name="ch1">通道 1 的目标值。</param>
+            <param name="ch2">通道 2 的目标值。</param>
+            <param name="ch3">通道 3 的目标值。</param>
+            <param name="ch4">通道 4 的目标值。</param>
+            <param name="ch5">通道 5 的目标值。</param>
+            <param name="ch6">通道 6 的目标值。</param>
+            <param name="ch7">通道 7 的目标值。</param>
+            <param name="ch8">通道 8 的目标值。</param>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.SetMobileControlAsync(System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.UInt16},System.Nullable{System.Single})">
+            <summary>
+            用指定的值设置通道和偏航。
+            </summary>
+            <param name="ch1">通道 1 的目标值。</param>
+            <param name="ch2">通道 2 的目标值。</param>
+            <param name="ch3">通道 3 的目标值。</param>
+            <param name="ch4">通道 4 的目标值。目前此参数无效（20160119）。</param>
+            <param name="ch5">通道 5 的目标值。</param>
+            <param name="ch6">通道 6 的目标值。</param>
+            <param name="ch7">通道 7 的目标值。</param>
+            <param name="ch8">通道 8 的目标值。</param>
+            <param name="yaw">偏航的目标值</param>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.StartEmergencyHoverAsync">
+            <summary>
+            进入紧急悬停状态。此状态需要使用 GPS 定位，卫星数不足导致定位不准时非常危险。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.StartMobileControl(System.Nullable{System.Int32})">
+            <summary>
+            开始根据各个目标属性（如 <see cref="!:DesiredChannel1"/>）控制飞行器。
+            </summary>
+            <param name="millisecondsInterval">发送控制命令的时间间距，若为 null，将由 SDK 决定。</param>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.StopEmergencyHover">
+            <summary>
+            停止紧急悬停。
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.StopMobileControl">
+            <summary>
+            停止根据各个目标属性（如 <see cref="!:DesiredChannel1"/>）控制飞行器。
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.TakeOffAsync">
+            <summary>
+            自动起飞到预定高度。此操作需要使用 GPS 定位，卫星数不足导致定位不准时非常危险。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.TakeOffAsync(System.Single)">
+            <summary>
+            自动解锁并起飞到指定高度。此操作需要使用 GPS 定位，卫星数不足导致定位不准时非常危险。
+            </summary>
+            <param name="alt">目标高度。</param>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterActionsSharedByCopterManager.UnlockAsync">
+            <summary>
+            解锁飞行器。螺旋桨将开始转动，但飞行器不会起飞。
+            </summary>
+            <returns>表示此命令异步发送操作的 <see cref="T:System.Threading.Tasks.Task"/> 实例。</returns>
+        </member>
+        <member name="T:EHang.Copters.ICopterCommunication">
+            <summary>
+            定义与通信相关的属性。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterCommunication.Connection">
+            <summary>
+            获取或设置用于与飞行器通信的 <see cref="T:EHang.Communication.IConnection"/> 实例。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.ICopterEvents">
+            <summary>
+            定义飞行器代理对象的事件。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.AltitudeChanged">
+            <summary>
+            在高度变化时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.AttitudeChanged">
+            <summary>
+            在姿态变化时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.HeartbeatReceived">
+            <summary>
+            在收到心跳时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.LocationChanged">
+            <summary>
+            在位置变化时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.MissionItemReceived">
+            <summary>
+            在收到自动飞行任务详情时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.PairingCompleted">
+            <summary>
+            在对频完成（成功或失败）时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.SensorDataReceived">
+            <summary>
+            在收到传感器数据时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.StateChanged">
+            <summary>
+            在飞行状态变化时发生。
+            </summary>
+        </member>
+        <member name="E:EHang.Copters.ICopterEvents.SystemStatusReceived">
+            <summary>
+            在收到系统状态信息时发生。
+            </summary>
+        </member>
+        <member name="M:EHang.Copters.ICopterMissionActions.RequestMissionListAsync(System.Int32)">
+            <summary>
+            查询任务序列。
+            </summary>
+            <param name="millisecondsTimeout">超时时间。</param>
+            <returns>飞行器返回的任务序列。</returns>
+        </member>
+        <member name="M:EHang.Copters.ICopterMissionActions.WriteMissionListAsync(System.Collections.Generic.IEnumerable{EHang.Copters.IMission},System.Int32)">
+            <summary>
+            写入任务序列。
+            </summary>
+            <param name="missions">任务序列。</param>
+            <param name="millisecondsTimeout">超时时间。</param>
+            <returns>若写入成功，返回 true；否则返回 false。</returns>
+        </member>
+        <member name="T:EHang.Copters.ICopterStatus">
+            <summary>
+            定义用于获取飞行器状态的属性。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.AirSpeed">
+            <summary>
+            获取当前空速，单位为 m/s。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.BatteryPer">
+            <summary>
+            获取剩余电量百分比，其范围为 [0, 100]。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel1">
+            <summary>
+            获取通道 1 的值。该值在飞控中用于改变飞行器横滚姿态，从而控制其左右方向的移动。有效范围为 [1100, 1900]。小于 1500 时使飞行器向左倾斜，大于 1500 时使飞行器向右倾斜。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel2">
+            <summary>
+            获取通道 2 的值。该值在飞控中用于改变飞行器俯仰姿态，从而控制其前后方向的移动。有效范围为 [1100, 1900]。小于 1500 时使飞行器向前倾斜，大于 1500 时使飞行器向后倾斜。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel3">
+            <summary>
+            获取通道 3 的值。该值在飞控中用于改变飞行器油门，从而控制其上下方向的移动。有效范围为 [1100, 1900]。在能够定高的模式（如 ALT_HOLD、LOITER）下，小于 1500 时使飞行器下降，大于 1500 时使飞行器上升。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel4">
+            <summary>
+            获取通道 4 的值。该值在飞控中用于使飞行器改变机头方向。有效范围为 [1100, 1900]。小于 1500 时使飞行器逆时针旋转，大于 1500 时使飞行器顺时针旋转。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel5">
+            <summary>
+            获取通道 5 的值。其作用未定义。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel6">
+            <summary>
+            获取通道 6 的值。该值在飞控中用于控制相机正对的方向。有效范围为 [1100, 1900]。小于 1500 时使相机逆时针旋转，大于 1500 时使相机顺时针旋转。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel7">
+            <summary>
+            获取通道 7 的值。该值在飞控中用于控制相机俯仰姿态。有效范围为 [1100, 1900]。小于 1500 时使相机向后旋转，大于 1500 时使相机向前旋转。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Channel8">
+            <summary>
+            获取通道 8 的值。其作用未定义。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Elevation">
+            <summary>
+            获取海拔。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.FirmwareVersion">
+            <summary>
+            获取固件版本。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.FirmwareVersionText">
+            <summary>
+            获取固件版本的文本形式。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.FlightDistance">
+            <summary>
+            获取在三维空间中的飞行距离。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.FlightDistance2D">
+            <summary>
+            获取在水平面上的飞行距离。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.FlightTimeSpan">
+            <summary>
+            获取飞行时间。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.GpsFixType">
+            <summary>
+            获取 GPS 锁定状态。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.GpsHdop">
+            <summary>
+            获取 GPS HDOP（horizontal dilution of position），单位为米。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.GroundSpeed">
+            <summary>
+            获取当前地速，单位为 m/s。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.HasSwitchedToGpsMode">
+            <summary>
+            获取一个值，指示是否切过 GPS 模式。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.HeartbeatCount">
+            <summary>
+            获取收到心跳的总数。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Id">
+            <summary>
+            获取飞行器的标识。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.IsAbsolutelyConnected">
+            <summary>
+            获取一个值，指示是否确定飞行器与地面站正常连接。在实现中，一般根据对心跳包的接收情况判断。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.IsCheckingConnection">
+            <summary>
+            获取一个值，指示是否正在检查飞行器与地面站的连接以确定通信正常。在实现中，一般在建立连接后设为 true，在收到飞行器发回的数据后设为 false。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.IsConnected">
+            <summary>
+            获取一个值，指示飞行器与地面站之间的连接是否正常。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.IsGpsAccurate">
+            <summary>
+            获取一个值，指示当前的 GPS 定位是否足够精确。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.IsUnlocked">
+            <summary>
+            获取一个值，指示飞行器是否已解锁。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.MissionCount">
+            <summary>
+            获取任务总数。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.SatCount">
+            <summary>
+            获取飞行器的 GPS 卫星数。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.State">
+            <summary>
+            获取当前所处状态。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.StatusText">
+            <summary>
+            获取飞控发回的消息，如起飞失败原因。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.TakeOffPoint">
+            <summary>
+            获取起飞点。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.ICopterStatus.Voltage">
+            <summary>
+            获取当前电池电压，单位为伏特。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.IFakeCopter">
+            <summary>
+            包含 <see cref="T:EHang.Copters.ICopter"/> 的所有功能，并提供用于模拟和调试的额外方法。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.IMission">
+            <summary>
+            定义自动飞行任务的属性。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Altitude">
+            <summary>
+            获取或设置相对于起飞点的高度。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Command">
+            <summary>
+            获取或设置飞行命令。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Latitude">
+            <summary>
+            获取或设置纬度。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Longitude">
+            <summary>
+            获取或设置经度。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Param1">
+            <summary>
+            获取或设置参数 1。通常用来指定判断为到达的最大半径，单位为米。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Param2">
+            <summary>
+            获取或设置参数 2。通常用来指定停留时间，单位为毫秒。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Param3">
+            <summary>
+            获取或设置参数 3。通常用来指定盘旋半径，单位为米，正数表示顺时针，负数表示逆时针。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Param4">
+            <summary>
+            获取或设置参数 4。通常用来指定机头方向，单位为角度，北方为 0，东方为 90，范围为 [0, 360)。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IMission.Sequence">
+            <summary>
+            获取或设置序号。
+            </summary>
+        </member>
+        <member name="T:EHang.Copters.IVisibleStatus">
+            <summary>
+            定义物体可见的状态。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.IVisibleStatus.Name">
+            <summary>
+            获取名称。
+            </summary>
+        </member>
+        <member name="P:EHang.Copters.MissionItemReceivedEventArgs.Mission">
+            <summary>
+            获取任务详情。
+            </summary>
+        </member>
+        <member name="T:EHang.Geography.GeographyUtils">
+            <summary>
+            提供地理相关计算的方法。
+            </summary>
+        </member>
+        <member name="F:EHang.Geography.GeographyUtils.METERS_TO_LAT_SPAN">
+            <summary>
+            米数转换为纬度跨度时需要乘的常数。
+            </summary>
+        </member>
+        <member name="F:EHang.Geography.GeographyUtils.DEG_TO_RAD">
+            <summary>
+            角度转换为弧度时需要乘的常数。
+            </summary>
+        </member>
+        <member name="F:EHang.Geography.GeographyUtils.EARTH_RADIUS">
+            <summary>
+            地球的半径。
+            </summary>
+        </member>
+        <member name="F:EHang.Geography.GeographyUtils.GLOBE_CIRCUMFERENCE">
+            <summary>
+            当前星球的周长。
+            </summary>
+        </member>
+        <member name="F:EHang.Geography.GeographyUtils.GLOBE_RADIUS">
+            <summary>
+            当前星球的半径。
+            </summary>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcDirection2D(System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            计算从 (lat1, lng1) 到 (lat2, lng2) 的方向，单位为弧度。
+            </summary>
+            <param name="lat1">第一个点的纬度。</param>
+            <param name="lng1">第一个点的经度。</param>
+            <param name="lat2">第二个点的纬度。</param>
+            <param name="lng2">第二个点的经度。</param>
+            <returns>点 1 到点 2 的方向。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcDistance(EHang.Geography.ILocation,EHang.Geography.ILocation)">
+            <summary>
+            计算空间中两点间的距离，单位为米。
+            </summary>
+            <param name="l1">点 1。</param>
+            <param name="l2">点 2。</param>
+            <returns>空间中两点间的距离，单位为米。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcDistance(System.Double,System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            计算空间中两点之间的距离，单位为米。
+            </summary>
+            <param name="lat1">纬度 1。</param>
+            <param name="lng1">经度 1。</param>
+            <param name="alt1">高度 1。</param>
+            <param name="lat2">纬度 2。</param>
+            <param name="lng2">经度 2。</param>
+            <param name="alt2">高度 2。</param>
+            <returns>空间中两点之间的距离，单位为米。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcDistance2D(EHang.Geography.ILocation2D,EHang.Geography.ILocation2D)">
+            <summary>
+            计算二维平面上两个位置之间的距离，单位为米。
+            </summary>
+            <param name="l1">位置 1。</param>
+            <param name="l2">位置 2。</param>
+            <returns>空间中两点间的距离。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcDistance2D(System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            计算二维平面上两个位置之间的距离，单位为米。
+            </summary>
+            <param name="lat1">纬度 1。</param>
+            <param name="lng1">经度 1。</param>
+            <param name="lat2">纬度 2。</param>
+            <param name="lng2">经度 2。</param>
+            <returns>计算二维平面上两个位置之间的距离，单位为米。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcLatLngSomeMetersAway2D(System.Double,System.Double,System.Single,System.Single)">
+            <summary>
+            计算在水平面上从指定点往指定方向移动指定距离后所在的点。
+            </summary>
+            <param name="lat1">出发点的纬度。</param>
+            <param name="lng1">出发点的经度。</param>
+            <param name="directionDegrees">移动方向，单位为角度。</param>
+            <param name="distance">移动距离。</param>
+            <returns>从指定点往指定方向移动指定距离后所在的点。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcLatLngSomeMetersAway2D(EHang.Geography.ILocation2D,System.Single,System.Single)">
+            <summary>
+            计算在水平面上从指定点往指定方向移动指定距离后所在的点。
+            </summary>
+            <param name="loc1">出发点。</param>
+            <param name="directionDegrees">移动方向，单位为角度。</param>
+            <param name="distance">移动距离。</param>
+            <returns>从指定点往指定方向移动指定距离后所在的点。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CalcMetersToLngSpan(System.Double)">
+            <summary>
+            计算在指定纬度上，米数转换为经度跨度时需要乘的值。
+            </summary>
+            <param name="latitude">纬度。</param>
+            <returns>在指定纬度上，米数转换为经度跨度时需要乘的值。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CheckCrossing2D(EHang.Geography.ILocation2D,EHang.Geography.ILocation2D,EHang.Geography.ILocation2D,EHang.Geography.ILocation2D)">
+            <summary>
+            检测同一水平面上（忽略高度）的两条线段是否相交。
+            </summary>
+            <param name="l1">线段 A 端点 1。</param>
+            <param name="l2">线段 A 端点 2。</param>
+            <param name="l3">线段 B 端点 1。</param>
+            <param name="l4">线段 B 端点 2。</param>
+            <returns>若相交，返回 true；否则返回 false。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.CheckCrossing2D(System.Double,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            检测同一水平面上的两条线段是否相交。
+            </summary>
+            <param name="latA1">线段 A 端点 1 的纬度。</param>
+            <param name="lngA1">线段 A 端点 1 的经度。</param>
+            <param name="latA2">线段 A 端点 2 的纬度。</param>
+            <param name="lngA2">线段 A 端点 2 的经度。</param>
+            <param name="latB1">线段 B 端点 1 的纬度。</param>
+            <param name="lngB1">线段 B 端点 1 的经度。</param>
+            <param name="latB2">线段 B 端点 2 的纬度。</param>
+            <param name="lngB2">线段 B 端点 2 的经度。</param>
+            <returns>若相交，返回 true；否则返回 false。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.DegToRad(System.Single)">
+            <summary>
+            把角度转换为弧度。
+            </summary>
+            <param name="value">角度值。</param>
+            <returns>弧度值。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.DegToRad(System.Double)">
+            <summary>
+            把角度转换为弧度。
+            </summary>
+            <param name="value">角度值。</param>
+            <returns>弧度值。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.DegToRad(System.Int16)">
+            <summary>
+            把角度转换为弧度。
+            </summary>
+            <param name="value">角度值。</param>
+            <returns>弧度值。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.NormalizeDirection(System.Single)">
+            <summary>
+            把指示方向的角度数限制在 [0, 360)。
+            </summary>
+            <param name="value">指示方向的角度数。</param>
+            <returns>等价的在标准范围内的角度。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.NormalizeDirection(System.Double)">
+            <summary>
+            把指示方向的角度值限制在 [0, 360)。
+            </summary>
+            <param name="value">指示方向的角度值。</param>
+            <returns>等价的在标准范围内的角度。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.NormalizeDirectionRad(System.Double)">
+            <summary>
+            把指示方向的弧度值限制在 [0, 2PI)。
+            </summary>
+            <param name="value">指示方向的弧度值。</param>
+            <returns>等价的在标准范围内的弧度。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.RadToDeg(System.Single)">
+            <summary>
+            把弧度转换为角度。
+            </summary>
+            <param name="value">弧度值。</param>
+            <returns>角度值。</returns>
+        </member>
+        <member name="M:EHang.Geography.GeographyUtils.RadToDeg(System.Double)">
+            <summary>
+            把弧度转换为角度。
+            </summary>
+            <param name="value">弧度值。</param>
+            <returns>角度值。</returns>
+        </member>
+        <member name="T:EHang.Geography.ILocation">
+            <summary>
+            定义可用于确定一个固定的星球上的空间中的一个点的属性。
+            </summary>
+        </member>
+        <member name="P:EHang.Geography.ILocation.Altitude">
+            <summary>
+            获取相对高度。
+            </summary>
+        </member>
+        <member name="P:EHang.Geography.ILocation2D.Latitude">
+            <summary>
+            获取纬度。
+            </summary>
+        </member>
+        <member name="P:EHang.Geography.ILocation2D.Longitude">
+            <summary>
+            获取经度。
+            </summary>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcDirection2D(EHang.Geography.ILocation2D,EHang.Geography.ILocation2D)">
+            <summary>
+            计算在二维平面上从 <paramref name="l1"/> 到 <paramref name="l2"/> 的方向，单位为弧度。
+            </summary>
+            <param name="l1">出发点。</param>
+            <param name="l2">目标点。</param>
+            <returns>点 1 到点 2 的方向。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcDirection2D(EHang.Geography.ILocation2D,System.Double,System.Double)">
+            <summary>
+            计算在二维平面上从 <paramref name="l1"/> 到 (<paramref name="lat2"/>, <paramref name="lng2"/>) 的方向，单位为弧度。
+            </summary>
+            <param name="l1">出发点。</param>
+            <param name="lat2">目标点的纬度。</param>
+            <param name="lng2">目标点的经度。</param>
+            <returns>点 1 到点 2 的方向。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcDistance(EHang.Geography.ILocation,EHang.Geography.ILocation)">
+            <summary>
+            计算空间中两点间的距离，单位为米。
+            </summary>
+            <param name="l1">点 1。</param>
+            <param name="l2">点 2。</param>
+            <returns>空间中两点间的距离。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcDistance(EHang.Geography.ILocation,System.Double,System.Double,System.Double)">
+            <summary>
+            计算空间中两点间的距离，单位为米。
+            </summary>
+            <param name="l1">点 1。</param>
+            <param name="lat2">点 2 的纬度。</param>
+            <param name="lng2">点 2 的经度。</param>
+            <param name="alt2">点 2 的高度。</param>
+            <returns>空间中两点间的距离。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcDistance2D(EHang.Geography.ILocation2D,EHang.Geography.ILocation2D)">
+            <summary>
+            计算二维平面上两个位置之间的距离，单位为米。
+            </summary>
+            <param name="l1">位置 1。</param>
+            <param name="l2">位置 2。</param>
+            <returns>平面上两点间的距离。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcDistance2D(EHang.Geography.ILocation2D,System.Double,System.Double)">
+            <summary>
+            计算二维平面上两个位置之间的距离，单位为米。
+            </summary>
+            <param name="lat2">点 2 的纬度。</param>
+            <param name="lng2">点 2 的经度。</param>
+            <returns>平面上两点间的距离。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.CalcLatLngSomeMetersAway2D(EHang.Geography.ILocation2D,System.Single,System.Single)">
+            <summary>
+            计算在水平面上从指定点往指定方向移动指定距离后所在的点。
+            </summary>
+            <param name="loc1">出发点。</param>
+            <param name="directionDegrees">移动方向，单位为角度。</param>
+            <param name="distance">移动距离。</param>
+            <returns>从指定点往指定方向移动指定距离后所在的点。</returns>
+        </member>
+        <member name="M:EHang.Geography.LocationExtensions.IsNullOrEmpty(EHang.Geography.ILocation)">
+            <summary>
+            判断一个 <see cref="T:EHang.Geography.ILocation"/> 实例是否被认为是空值。
+            </summary>
+            <param name="loc"><see cref="T:EHang.Geography.ILocation"/> 实例。</param>
+            <returns>若给定的位置被认为是空值，返回 true；否则返回 false。</returns>
+        </member>
+        <member name="T:EHang.Messaging.CopterAttitudeChangedMessage">
+            <summary>
+            在飞行器姿态变化时发出的消息。
+            </summary>
+        </member>
+        <member name="T:EHang.Messaging.CopterPropertyChangedMessage">
+            <summary>
+            通过注册 <see cref="T:EHang.Messaging.CopterPropertyChangedMessage"/> 来监视未关联到特定 Message 的属性。
+            </summary>
+        </member>
+        <member name="M:EHang.Messaging.IEHMessenger.Register``1(System.Object,System.Action{``0})">
+            <summary>
+            Registers a recipient for a type of message TMessage. The action
+            parameter will be executed when a corresponding message is sent.
+            <para>Registering a recipient does not create a hard reference to it,
+            so if this recipient is deleted, no memory leak is caused.</para>
+            </summary>
+            <typeparam name="TMessage">The type of message that the recipient registers
+            for.</typeparam>
+            <param name="recipient">The recipient that will receive the messages.</param>
+            <param name="action">The action that will be executed when a message
+            of type TMessage is sent.</param>
+        </member>
+        <member name="M:EHang.Messaging.IEHMessenger.Send``1(``0)">
+            <summary>
+            Sends a message to registered recipients. The message will
+            reach all recipients that registered for this message type
+            using one of the Register methods.
+            </summary>
+            <typeparam name="TMessage">The type of message that will be sent.</typeparam>
+            <param name="message">The message to send to registered recipients.</param>
+        </member>
+        <member name="M:EHang.Messaging.IEHMessenger.Unregister(System.Object)">
+            <summary>
+            Unregisters a messager recipient completely. After this method
+            is executed, the recipient will not receive any messages anymore.
+            </summary>
+            <param name="recipient">The recipient that must be unregistered.</param>
+        </member>
+        <member name="P:EHang.Messaging.RequestUpdateAttitudeMessage.PitchDegrees">
+            <summary>
+            获取绕 X 轴的旋转（以度为单位）。
+            </summary>
+        </member>
+        <member name="P:EHang.Messaging.RequestUpdateAttitudeMessage.RollDegrees">
+            <summary>
+            获取绕 Y 轴的旋转（以度为单位）。
+            </summary>
+        </member>
+        <member name="P:EHang.Messaging.RequestUpdateAttitudeMessage.YawDegrees">
+            <summary>
+            获取绕 Z 轴的旋转（以度为单位，正北 0，正东 90，范围为 [0, 360)）。
+            </summary>
+        </member>
+    </members>
+</doc>
