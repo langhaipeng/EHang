@@ -47,6 +47,7 @@ using Windows.UI.Xaml.Media;
 using EHang.Copters;
 using EHang.Communication;
 using EHang.CopterManagement;
+using Microsoft.Practices.ServiceLocation;
 namespace EHangApp
 {
     /// <summary>
@@ -60,7 +61,7 @@ namespace EHangApp
         private bool isMapSelectionEnabled;
         private bool isExistingLocationBeingRepositioned;
 
-        //private ICopterManager _copterManager = new ICopterManager();
+        private ICopterManager _copterManager = ServiceLocator.Current.GetInstance<ICopterManager>();
 
         #region Location data
 
@@ -133,12 +134,26 @@ namespace EHangApp
 
             // Update the freshness timestamp every minute;
             Helpers.StartTimer(1, () => { foreach (var location in this.Locations) location.RefreshFormattedTimestamp(); });
-           
-          
 
 
+            var corper = CreateFakeCopter();
+            
             LocationHelper.RegisterTrafficMonitor();
         }
+
+
+
+        /// <summary>
+        /// 创建虚拟飞行器代理对象。
+        /// </summary>
+        /// <returns><see cref="ICopter"/> 实例。</returns>
+        private static ICopter CreateFakeCopter()
+        {
+            var copter = new FakeCopter();
+            copter.SetProperties(id: "FakeCopter", latitude: 23.14183333, longitude: 113.40184166);
+            return copter;
+        }
+
 
         /// <summary>
         /// Loads the saved location data on first navigation, and 

@@ -55,7 +55,7 @@ namespace EHangApp
         public App()
         {
             this.InitializeComponent();
-           /*
+           
             var _container = SimpleIoc.Default;
 
             ServiceLocator.SetLocatorProvider(() => _container);
@@ -64,7 +64,7 @@ namespace EHangApp
             _container.Register(() => Messenger.Default);
             _container.Register<IEHMessenger, MessengerAdapter>();
             _container.Register<ICopterManager, SingleCopterManager>();
-            */
+            
             this.Suspending += OnSuspending;
         }
 
