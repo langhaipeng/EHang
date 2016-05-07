@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //  ---------------------------------------------------------------------------------
 
-using Location;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -48,6 +48,10 @@ using EHang.Copters;
 using EHang.Communication;
 using EHang.CopterManagement;
 using Microsoft.Practices.ServiceLocation;
+using CopterHelper;
+using EHang.Messaging;
+using GalaSoft.MvvmLight.Messaging;
+
 namespace EHangApp
 {
     /// <summary>
@@ -55,30 +59,31 @@ namespace EHangApp
     /// </summary>finput
     public sealed partial class MainPage : Page
     {
-        private LocationData locationInEdit;
+        private CopterData locationInEdit;
         private BasicGeoposition locationInEditOriginalPosition;
         private bool isNewLocationInEdit;
         private bool isMapSelectionEnabled;
         private bool isExistingLocationBeingRepositioned;
-
+        public ICopter _copter;
         private ICopterManager _copterManager = ServiceLocator.Current.GetInstance<ICopterManager>();
+        private IMessenger _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
 
         #region Location data
 
         /// <summary>
         /// Gets or sets the saved locations. 
         /// </summary>
-        public ObservableCollection<LocationData> Locations { get; private set; }
+        public ObservableCollection<CopterData> Locations { get; private set; }
 
         /// <summary>
         /// Gets or sets the locations represented on the map; this is a superset of Locations, and 
         /// includes the current location and any locations being added but not yet saved. 
         /// </summary>
-        public ObservableCollection<LocationData> MappedLocations { get; set; }
+        public ObservableCollection<CopterData> MappedLocations { get; set; }
 
         private object selectedLocation;
         /// <summary>
-        /// Gets or sets the LocationData object corresponding to the current selection in the locations list. 
+        /// Gets or sets the CopterData object corresponding to the current selection in the locations list. 
         /// </summary>
         public object SelectedLocation
         {
@@ -87,22 +92,23 @@ namespace EHangApp
             {
                 if (this.selectedLocation != value)
                 {
-                    var oldValue = this.selectedLocation as LocationData;
-                    var newValue = value as LocationData;
+                    var oldValue = this.selectedLocation as CopterData;
+                    var newValue = value as CopterData;
                     if (oldValue != null)
                     {
                         oldValue.IsSelected = false;
-                        this.InputMap.Routes.Clear();
+                       // this.InputMap.Routes.Clear();
                     }
                     if (newValue != null)
                     {
                         newValue.IsSelected = true;
-                        if (newValue.FastestRoute != null) this.InputMap.Routes.Add(new MapRouteView(newValue.FastestRoute));
+                       // if (newValue.FastestRoute != null) this.InputMap.Routes.Add(new MapRouteView(newValue.FastestRoute));
                     }
                     this.selectedLocation = newValue;
 
                 }
-                this.EditLocation(value as LocationData);
+                 //this.flyinfo.DataContext=(value as CopterData).Copter;
+               // this.EditLocation(value as CopterData);
             }
         }
 
@@ -118,15 +124,15 @@ namespace EHangApp
         {
             this.InitializeComponent();
 
-            this.Locations = new ObservableCollection<LocationData>();
-            this.MappedLocations = new ObservableCollection<LocationData>(this.Locations);
+            this.Locations = new ObservableCollection<CopterData>();
+            this.MappedLocations = new ObservableCollection<CopterData>(this.Locations);
 
             // MappedLocations is a superset of Locations, so any changes in Locations
             // need to be reflected in MappedLocations. 
             this.Locations.CollectionChanged += (s, e) =>
             {
-                if (e.NewItems != null) foreach (LocationData item in e.NewItems) this.MappedLocations.Add(item);
-                if (e.OldItems != null) foreach (LocationData item in e.OldItems) this.MappedLocations.Remove(item);
+                if (e.NewItems != null) foreach (CopterData item in e.NewItems) this.MappedLocations.Add(item);
+                if (e.OldItems != null) foreach (CopterData item in e.OldItems) this.MappedLocations.Remove(item);
             };
 
             // Update the travel times every 5 minutes.
@@ -135,12 +141,38 @@ namespace EHangApp
             // Update the freshness timestamp every minute;
             Helpers.StartTimer(1, () => { foreach (var location in this.Locations) location.RefreshFormattedTimestamp(); });
 
-
-            var corper = CreateFakeCopter();
-            
-            LocationHelper.RegisterTrafficMonitor();
+           // _messenger.Register<CopterConnectedMessage>(this, m =>
+          //  {
+          //      AddOrMoveCopter(m.Copter);
+          //  });
+            _messenger.Register<CopterLocationChangedMessage>(this, m =>
+            {
+                AddOrMoveCopter(m.Copter);
+            });
+            DataContext = new MainViewModel();
+            CopterHelper.CopterHelper.RegisterTrafficMonitor();
         }
 
+        private void AddOrMoveCopter(ICopter copter)
+        {
+            (this.LocationsView.SelectedItem as CopterData).Position=new BasicGeoposition { Latitude = copter.Latitude, Longitude = copter.Longitude };
+            /*
+            var location = new Location(copter.Latitude, copter.Longitude);
+            if (_copterMarker == null)
+            {
+                _copterMarker = new MapPolygon
+                {
+                    Width = 20,
+                    Height = 20,
+                    Background = new SolidColorBrush(Colors.Red)
+                };
+                map.Children.Add(_copterMarker);
+
+                map.Center = location;
+            }
+            MapLayer.SetPosition(_copterMarker, location);
+            */
+        }
 
 
         /// <summary>
@@ -166,14 +198,14 @@ namespace EHangApp
             if (e.NavigationMode == NavigationMode.New)
             {
                 // Load sample location data.
-                foreach (var location in await LocationDataStore.GetSampleLocationDataAsync()) this.Locations.Add(location);
+                foreach (var location in await CopterDataStore.GetSampleCopterDataAsync()) this.Locations.Add(location);
 
                 // Alternative: Load location data from storage.
-                //foreach (var item in await LocationDataStore.GetLocationDataAsync()) this.Locations.Add(item);
+                //foreach (var item in await CopterDataStore.GetCopterDataAsync()) this.Locations.Add(item);
 
                 // Start handling Geolocator and network status changes after loading the data 
                 // so that the view doesn't get refreshed before there is something to show.
-                LocationHelper.Geolocator.StatusChanged += Geolocator_StatusChanged;
+                CopterHelper.CopterHelper.Geolocator.StatusChanged += Geolocator_StatusChanged;
                 NetworkInformation.NetworkStatusChanged += NetworkInformation_NetworkStatusChanged;
             }
         }
@@ -185,8 +217,8 @@ namespace EHangApp
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
-            LocationHelper.CancelGetCurrentLocation();
-            LocationHelper.Geolocator.StatusChanged -= Geolocator_StatusChanged;
+            CopterHelper.CopterHelper.CancelGetCurrentLocation();
+            CopterHelper.CopterHelper.Geolocator.StatusChanged -= Geolocator_StatusChanged;
             NetworkInformation.NetworkStatusChanged -= NetworkInformation_NetworkStatusChanged;
         }
 
@@ -246,7 +278,7 @@ namespace EHangApp
         /// <returns></returns>
         private async Task ResetViewAsync(bool isGeolocatorReady = true)
         {
-            LocationData currentLocation = null;
+            CopterData currentLocation = null;
             if (isGeolocatorReady) currentLocation = await this.GetCurrentLocationAsync();
             if (currentLocation != null)
             {
@@ -254,7 +286,7 @@ namespace EHangApp
                 {
                     this.MappedLocations.RemoveAt(0);
                 }
-                this.MappedLocations.Insert(0, new LocationData { Position = currentLocation.Position, IsCurrentLocation = true });
+                this.MappedLocations.Insert(0, new CopterData { Position = currentLocation.Position, IsCurrentLocation = true });
             }
 
             // Set the current view of the map control. 
@@ -309,9 +341,9 @@ namespace EHangApp
         /// if traffic is currently increasing the travel time by 10 minutes or more; also 
         /// updates the network status message depending on the results.
         /// </summary>
-        private async Task<bool> TryUpdateLocationsTravelInfoAsync(IEnumerable<LocationData> locations, LocationData currentLocation)
+        private async Task<bool> TryUpdateLocationsTravelInfoAsync(IEnumerable<CopterData> locations, CopterData currentLocation)
         {
-            bool isNetworkAvailable = await LocationHelper.TryUpdateLocationsTravelInfoAsync(this.Locations, currentLocation);
+            bool isNetworkAvailable = await CopterHelper.CopterHelper.TryUpdateLocationsTravelInfoAsync(this.Locations, currentLocation);
             this.UpdateNetworkStatus(isNetworkAvailable);
             return isNetworkAvailable;
         }
@@ -321,9 +353,9 @@ namespace EHangApp
         /// and updates the Geolocator status message depending on the results.
         /// </summary>
         /// <returns>The current location.</returns>
-        private async Task<LocationData> GetCurrentLocationAsync()
+        private async Task<CopterData> GetCurrentLocationAsync()
         {
-            var currentLocation = await LocationHelper.GetCurrentLocationAsync();
+            var currentLocation = await CopterHelper.CopterHelper.GetCurrentLocationAsync();
             this.UpdateLocationStatus(currentLocation != null);
             return currentLocation;
         }
@@ -372,7 +404,7 @@ namespace EHangApp
             if (currentLocation != null)
             {
                 // Resolve the address given the geocoordinates.
-                await LocationHelper.TryUpdateMissingLocationInfoAsync(currentLocation, currentLocation);
+                await CopterHelper.CopterHelper.TryUpdateMissingLocationInfoAsync(currentLocation, currentLocation);
 
                 this.EditNewLocation(currentLocation);
             }
@@ -396,7 +428,7 @@ namespace EHangApp
             };
             this.Locations[0].Position = newposition;
             */
-           this.EditNewLocation(new LocationData());
+           //this.EditNewLocation(new CopterData());
         }
 
         /// <summary>
@@ -405,13 +437,13 @@ namespace EHangApp
         /// </summary>
         private async void InputMap_MapHolding(MapControl sender, MapInputEventArgs args)
         {
-            var location = new LocationData { Position = args.Location.Position };
+            var location = new CopterData { Position = args.Location.Position };
 
             // Resolve the address given the geocoordinates. In this case, because the 
             // location is unambiguous, there is no need to pass in the current location.
-            await LocationHelper.TryUpdateMissingLocationInfoAsync(location, null);
+           // await CopterHelper.CopterHelper.TryUpdateMissingLocationInfoAsync(location, null);
 
-            this.EditNewLocation(location);
+            //this.EditNewLocation(location);
         }
 
         #endregion Primary commands: app-bar buttons, map holding gesture
@@ -435,7 +467,7 @@ namespace EHangApp
             var location = this.GetLocation(sender as Button);
             int index = this.Locations.IndexOf(location);
             this.Locations.Remove(location);
-            await LocationDataStore.SaveLocationDataAsync(this.Locations);
+            await CopterDataStore.SaveCopterDataAsync(this.Locations);
         }
 
         /// <summary>
@@ -448,7 +480,7 @@ namespace EHangApp
             if (currentLocation != null)
             { 
                 var location = this.GetLocation(sender as Button);
-                await LocationHelper.ShowRouteToLocationInMapsAppAsync(location, currentLocation);
+                await CopterHelper.CopterHelper.ShowRouteToLocationInMapsAppAsync(location, currentLocation);
             }
         }
 
@@ -463,16 +495,16 @@ namespace EHangApp
             var location = this.GetLocation(button);
             location.IsMonitored = button.IsChecked.Value;
             this.UpdateTrafficMonitor(button.IsChecked.Value);
-            await LocationDataStore.SaveLocationDataAsync(this.Locations);
+            await CopterDataStore.SaveCopterDataAsync(this.Locations);
         }
 
         /// <summary>
-        /// Gets the data context of the specified element as a LocationData instance.
+        /// Gets the data context of the specified element as a CopterData instance.
         /// </summary>
         /// <param name="element">The element bound to the location.</param>
         /// <returns>The location bound to the element.</returns>
-        private LocationData GetLocation(FrameworkElement element) => 
-            (element.FindName("Presenter") as FrameworkElement).DataContext as LocationData;
+        private CopterData GetLocation(FrameworkElement element) => 
+            (element.FindName("Presenter") as FrameworkElement).DataContext as CopterData;
 
         /// <summary>
         /// Registers or unregisters the traffic monitoring background task depending 
@@ -483,8 +515,8 @@ namespace EHangApp
         private void UpdateTrafficMonitor(bool isIncrement)
         {
             var monitoredLocationCount = this.Locations.Count(location => location.IsMonitored);
-            if (isIncrement && monitoredLocationCount == 1) LocationHelper.RegisterTrafficMonitor();
-            else if (monitoredLocationCount == 0) LocationHelper.UnregisterTrafficMonitor();
+            if (isIncrement && monitoredLocationCount == 1) CopterHelper.CopterHelper.RegisterTrafficMonitor();
+            else if (monitoredLocationCount == 0) CopterHelper.CopterHelper.UnregisterTrafficMonitor();
         }
 
         #endregion Location commands: per-location buttons
@@ -496,24 +528,14 @@ namespace EHangApp
         /// </summary>
         private async void FlyoutSave_Click(object sender, RoutedEventArgs e)
         {
-            await this.SaveAsync((sender as FrameworkElement).DataContext as LocationData);
+            await this.SaveAsync((sender as FrameworkElement).DataContext as CopterData);
         }
 
-        /// <summary>
-        /// Handles presses to the Enter key by saving location edits. 
-        /// </summary>
-        private async void TextBox_KeyUp(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
-        {
-            if (e.Key == Windows.System.VirtualKey.Enter)
-            {
-                await this.SaveAsync((sender as FrameworkElement).DataContext as LocationData);
-            }
-        }
-
+     
         /// <summary>
         /// Adds the specified location to the Locations list and shows the editor flyout.
         /// </summary>
-        public void EditNewLocation(LocationData location)
+        public void EditNewLocation(CopterData location)
         {
             if (this.LocationsView.Visibility == Visibility.Collapsed) this.ToggleLocationsPaneVisibility();
             this.Locations.Add(location);
@@ -527,7 +549,7 @@ namespace EHangApp
         /// that can be saved, or discarded if the user dismisses the editor. 
         /// </summary>
         /// <param name="location"></param>
-        private void EditLocation(LocationData location)
+        private void EditLocation(CopterData location)
         {
             this.locationInEdit = location;
             //var element = this.GetTemplateRootForLocation(location);
@@ -538,11 +560,11 @@ namespace EHangApp
         }
 
         /// <summary>
-        /// Applies the changes represented by the specified LocationData to 
+        /// Applies the changes represented by the specified CopterData to 
         /// the cached location in edit, saves the changes to the file system,
         /// and updates the user interface to account for the changes. 
         /// </summary>
-        private async Task SaveAsync(LocationData workingCopy)
+        private async Task SaveAsync(CopterData workingCopy)
         {
             Flyout.GetAttachedFlyout(this.GetTemplateRootForLocation(this.locationInEdit)).Hide();
 
@@ -563,7 +585,7 @@ namespace EHangApp
             // info and the route so that it doesn't reflect the old position.
             if (isAddressNew || areCoordinatesNew)
             {
-                workingCopy.ClearTravelInfo();
+                //workingCopy.ClearTravelInfo();
                 this.InputMap.Routes.Clear();
             }
 
@@ -574,16 +596,16 @@ namespace EHangApp
             {
                 if (isAddressNew ^ areCoordinatesNew)
                 {
-                    await LocationHelper.TryUpdateMissingLocationInfoAsync(this.locationInEdit, currentLocation);
+                    await CopterHelper.CopterHelper.TryUpdateMissingLocationInfoAsync(this.locationInEdit, currentLocation);
                 }
             }
 
-            await LocationDataStore.SaveLocationDataAsync(this.Locations);
+            await CopterDataStore.SaveCopterDataAsync(this.Locations);
 
             if (currentLocation != null)
             {
                 bool isNetworkAvailable = await this.TryUpdateLocationsTravelInfoAsync(this.Locations, currentLocation);
-                if (isNetworkAvailable) this.InputMap.Routes.Add(new MapRouteView(this.locationInEdit.FastestRoute));
+               // if (isNetworkAvailable) this.InputMap.Routes.Add(new MapRouteView(this.locationInEdit.FastestRoute));
             }
         }
 
@@ -617,7 +639,7 @@ namespace EHangApp
         /// used to access the attached editor flyout. 
         /// <param name="location">The location to edit.</param>
         /// <returns>The element that represents the location.</returns>
-        private FrameworkElement GetTemplateRootForLocation(LocationData location)
+        private FrameworkElement GetTemplateRootForLocation(CopterData location)
         {
             var item = this.LocationsView.ContainerFromItem(location) as ListViewItem;
             return item.ContentTemplateRoot as FrameworkElement;
@@ -627,13 +649,7 @@ namespace EHangApp
 
         #region Map selection mode for repositioning a location
 
-        /// <summary>
-        /// Handles the Tapped event of the map-selection-mode display message to leave selection mode.
-        /// </summary>
-        private void TextBlock_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
-        {
-            this.DisableMapSelection();
-        }
+       
 
         /// <summary>
         /// Handles the Tapped event of the map control to reposition a location 
@@ -648,11 +664,11 @@ namespace EHangApp
 
             var element = this.GetTemplateRootForLocation(this.locationInEdit);
             var flyout = Flyout.GetAttachedFlyout(element) as Flyout;
-            var location = (flyout.Content as FrameworkElement).DataContext as LocationData;
+            var location = (flyout.Content as FrameworkElement).DataContext as CopterData;
 
             location.Position = args.Location.Position;
             location.Address = String.Empty;
-            await LocationHelper.TryUpdateMissingLocationInfoAsync(location, null);
+            await CopterHelper.CopterHelper.TryUpdateMissingLocationInfoAsync(location, null);
 
             this.DisableMapSelection();
             flyout.ShowAt(element);
@@ -680,8 +696,8 @@ namespace EHangApp
         /// </summary>
         private void DisableMapSelection()
         {
-            this.isMapSelectionEnabled = false;
-            this.InputMap.MapTapped -= InputMap_MapTapped;
+            //this.isMapSelectionEnabled = false;
+            //this.InputMap.MapTapped -= InputMap_MapTapped;
             this.InputMap.MapHolding += InputMap_MapHolding;
             this.LocationsView.Visibility = Visibility.Visible;
             this.MapSelectionModeMessage.Visibility = Visibility.Collapsed;
@@ -742,6 +758,32 @@ namespace EHangApp
             //var flyout = Flyout.GetAttachedFlyout(sender as FrameworkElement) as Flyout;
 
            // flyout.ShowAt(sender as FrameworkElement);
+
+        }
+
+        private async void MenuFlyoutItem_Connect_Click(object sender, RoutedEventArgs e)
+        {
+            //var copter = (this.SelectedLocation as CopterData).Copter;
+            var copter = (LocationsView.SelectedItem as CopterData).Copter;
+            double y1 = copter.Longitude;
+            double y2 = copter.Latitude;
+
+            await _copterManager.ConnectAsync(copter);
+
+            double x1=copter.Longitude;
+            double x2 = copter.Latitude;
+        }
+
+       
+        private async void InputMap_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            var bposition = new BasicGeoposition();
+            var pos = new Geopoint(bposition);
+            InputMap.GetLocationFromOffset(e.GetPosition(InputMap), out pos);
+            await _copterManager.UnlockAsync();
+            await _copterManager.FlyToAsync(pos.Position.Latitude, pos.Position.Longitude);
 
         }
     }

@@ -27,13 +27,17 @@ using System.Runtime.Serialization;
 using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Services.Maps;
-
-namespace Location
+using EHang.Copters;
+using EHang.Communication;
+using EHang.CopterManagement;
+using CopterHelper;
+using EHang.Messaging;
+namespace CopterHelper
 {
     /// <summary>
-    /// Represents a saved location for use in tracking travel time, distance, and routes. 
+    /// 一个飞机的. 
     /// </summary>
-    public class LocationData : BindableBase
+    public class CopterData : BindableBase
     {
         private string name;
         /// <summary>
@@ -118,72 +122,7 @@ namespace Location
         public Point NormalizedAnchorPoint => IsCurrentLocation ? centerpoint : pinpoint;
 
         
-        private MapRoute fastestRoute;
-        /// <summary>
-        /// Gets or sets the route with the shortest travel time to the 
-        /// location from the user's current position.
-        /// </summary>
-        [IgnoreDataMember]
-        public MapRoute FastestRoute
-        {
-            get { return this.fastestRoute; }
-            set { this.SetProperty(ref this.fastestRoute, value); }
-        }
-
-        private int currentTravelTimeWithoutTraffic;
-        /// <summary>
-        /// Gets or sets the number of minutes it takes to drive to the location,
-        /// without taking traffic into consideration.
-        /// </summary>
-        public int CurrentTravelTimeWithoutTraffic
-        {
-            get { return this.currentTravelTimeWithoutTraffic; }
-            set { this.SetProperty(ref this.currentTravelTimeWithoutTraffic, value); }
-        }
-
-        private int currentTravelTime;
-        /// <summary>
-        /// Gets or sets the number of minutes it takes to drive to the location,
-        /// taking traffic into consideration.
-        /// </summary>
-        public int CurrentTravelTime
-        {
-            get { return this.currentTravelTime; }
-            set
-            {
-                this.SetProperty(ref this.currentTravelTime, value);
-                this.OnPropertyChanged(nameof(FormattedCurrentTravelTime));
-            }
-        }
-
-        /// <summary>
-        /// Gets a display-string representation of the current travel time. 
-        /// </summary>
-        public string FormattedCurrentTravelTime =>
-            this.CurrentTravelTime == 0 ? "??:??" :
-            new TimeSpan(0, this.CurrentTravelTime, 0).ToString("hh\\:mm");
-
-        private double currentTravelDistance;
-        /// <summary>
-        /// Gets or sets the current driving distance to the location, in miles.
-        /// </summary>
-        public double CurrentTravelDistance
-        {
-            get { return this.currentTravelDistance; }
-            set
-            {
-                this.SetProperty(ref this.currentTravelDistance, value);
-                this.OnPropertyChanged(nameof(FormattedCurrentTravelDistance));
-            }
-        }
-
-        /// <summary>
-        /// Gets a display-string representation of the current travel distance.
-        /// </summary>
-        public string FormattedCurrentTravelDistance =>
-            this.CurrentTravelDistance == 0 ? "?? miles" :
-            this.CurrentTravelDistance + " miles";
-
+     
         private DateTimeOffset timestamp;
         /// <summary>
         /// Gets or sets a value that indicates when the travel info was last updated. 
@@ -227,15 +166,51 @@ namespace Location
             set { this.SetProperty(ref this.isMonitored, value); }
         }
 
-        /// <summary>
-        /// Resets the travel time and distance values to 0, which indicates an unknown value.
-        /// </summary>
-        public void ClearTravelInfo()
+        public ICopter Copter
         {
-            this.CurrentTravelDistance = 0;
-            this.currentTravelTime = 0;
-            this.Timestamp = DateTimeOffset.Now;
+            get
+            {
+                return copter;
+            }
+
+            set
+            {
+                copter = value;
+            }
         }
+
+        public ICopterManager CopterManager
+        {
+            get
+            {
+                return copterManager;
+            }
+
+            set
+            {
+                copterManager = value;
+            }
+        }
+
+        public IEHMessenger Messager
+        {
+            get
+            {
+                return messager;
+            }
+
+            set
+            {
+                messager = value;
+            }
+        }
+
+        private ICopter copter;
+
+
+        private ICopterManager copterManager;
+
+        private IEHMessenger messager;
 
         /// <summary>
         /// Returns the name of the location, or the geocoordinates if there is no name. 
@@ -245,12 +220,12 @@ namespace Location
             $"{this.Position.Latitude}, {this.Position.Longitude}" : this.Name;
 
         /// <summary>
-        /// Return a new LocationData with the same property values as the current one.
+        /// Return a new CopterData with the same property values as the current one.
         /// </summary>
-        /// <returns>The new LocationData instance.</returns>
-        public LocationData Clone()
+        /// <returns>The new CopterData instance.</returns>
+        public CopterData Clone()
         {
-            var location = new LocationData();
+            var location = new CopterData();
             location.Copy(this);
             return location;
         }
@@ -259,14 +234,13 @@ namespace Location
         /// Copies the property values of the specified location into the current location.
         /// </summary>
         /// <param name="location">The location to copy the values from.</param>
-        public void Copy(LocationData location)
+        public void Copy(CopterData location)
         {
             this.Name = location.Name;  
             this.Address = location.Address;
             this.Position = location.Position;
-            this.CurrentTravelDistance = location.CurrentTravelDistance;
-            this.CurrentTravelTime = location.CurrentTravelTime;
             this.Timestamp = location.Timestamp;
+            this.copter = location.copter;
             this.IsMonitored = location.IsMonitored;
             
         }

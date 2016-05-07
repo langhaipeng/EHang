@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //  ---------------------------------------------------------------------------------
 
-using Location;
+using CopterHelper;
 using Windows.ApplicationModel.Background;
 
 namespace TrafficMonitor
@@ -34,7 +34,7 @@ namespace TrafficMonitor
     public sealed class TrafficMonitor : IBackgroundTask
     {
         /// <summary>
-        /// Uses the LocationHelper class to check monitored locations
+        /// Uses the CopterHelper class to check monitored locations
         /// and raise a notification if the travel time has increased. 
         /// </summary>
         public async void Run(IBackgroundTaskInstance taskInstance)
@@ -49,7 +49,7 @@ namespace TrafficMonitor
                     deferral.Complete();
                     return;
                 }
-                await LocationHelper.CheckTravelInfoForMonitoredLocationsAsync();
+                await CopterHelper.CopterHelper.CheckTravelInfoForMonitoredLocationsAsync();
             }
             finally
             {

@@ -62,7 +62,7 @@ namespace EHangApp
 
             _container.Register(() => SynchronizationContext.Current);
             _container.Register(() => Messenger.Default);
-            _container.Register<IEHMessenger, MessengerAdapter>();
+            _container.Register<IEHMessenger,MessengerAdapter>();
             _container.Register<ICopterManager, SingleCopterManager>();
             
             this.Suspending += OnSuspending;

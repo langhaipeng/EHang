@@ -33,14 +33,14 @@ using Windows.Devices.Geolocation;
 using Windows.Services.Maps;
 using Windows.UI.Notifications;
 
-namespace Location
+namespace CopterHelper
 {
-    public static class LocationHelper
+    public static class CopterHelper
     {
         private static string routeFinderUnavailableMessage = "Unable to access map route finder service.";
 
         /// <summary>
-        /// Gets the Geolocator singleton used by the LocationHelper.
+        /// Gets the Geolocator singleton used by the CopterHelper.
         /// </summary>
         public static Geolocator Geolocator { get; } = new Geolocator();
 
@@ -50,9 +50,9 @@ namespace Location
         private static CancellationTokenSource CancellationTokenSource { get; set; }
 
         /// <summary>
-        /// Initializes the LocationHelper. 
+        /// Initializes the CopterHelper. 
         /// </summary>
-        static LocationHelper()
+        static CopterHelper()
         {
             // TODO Replace the placeholder string below with your own Bing Maps key from https://www.bingmapsportal.com
             MapService.ServiceToken = "<insert your Bing Maps key here>";
@@ -62,7 +62,7 @@ namespace Location
         /// Gets the current location if the geolocator is available.
         /// </summary>
         /// <returns>The current location.</returns>
-        public static async Task<LocationData> GetCurrentLocationAsync()
+        public static async Task<CopterData> GetCurrentLocationAsync()
         {
             try
             {
@@ -73,11 +73,11 @@ namespace Location
                 {
                     case GeolocationAccessStatus.Allowed:
 
-                        LocationHelper.CancellationTokenSource = new CancellationTokenSource();
-                        var token = LocationHelper.CancellationTokenSource.Token;
+                        CopterHelper.CancellationTokenSource = new CancellationTokenSource();
+                        var token = CopterHelper.CancellationTokenSource.Token;
 
                         Geoposition position = await Geolocator.GetGeopositionAsync().AsTask(token);
-                        return new LocationData { Position = position.Coordinate.Point.Position };
+                        return new CopterData { Position = position.Coordinate.Point.Position };
 
                     case GeolocationAccessStatus.Denied: 
                     case GeolocationAccessStatus.Unspecified:
@@ -91,7 +91,7 @@ namespace Location
             }
             finally
             {
-                LocationHelper.CancellationTokenSource = null;
+                CopterHelper.CancellationTokenSource = null;
             }
             return null;
         }
@@ -101,10 +101,10 @@ namespace Location
         /// </summary>
         public static void CancelGetCurrentLocation()
         {
-            if (LocationHelper.CancellationTokenSource != null)
+            if (CopterHelper.CancellationTokenSource != null)
             {
-                LocationHelper.CancellationTokenSource.Cancel();
-                LocationHelper.CancellationTokenSource = null;
+                CopterHelper.CancellationTokenSource.Cancel();
+                CopterHelper.CancellationTokenSource = null;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Location
         /// to the specified location.
         /// </summary>
         /// <param name="location">The location to display the route to.</param>
-        public static async Task ShowRouteToLocationInMapsAppAsync(LocationData location, LocationData currentLocation)
+        public static async Task ShowRouteToLocationInMapsAppAsync(CopterData location, CopterData currentLocation)
         {
             var mapUri = new Uri("bingmaps:?trfc=1&rtp=" + 
                 $"pos.{Math.Round(currentLocation.Position.Latitude, 6)}_{Math.Round(currentLocation.Position.Longitude, 6)}~" + 
@@ -160,14 +160,14 @@ namespace Location
         /// </summary>
         public static async Task CheckTravelInfoForMonitoredLocationsAsync()
         {
-            var locations = await LocationDataStore.GetLocationDataAsync();
+            var locations = await CopterDataStore.GetCopterDataAsync();
             var flaggedLocations = locations.Where(location => location.IsMonitored).ToList();
             if (flaggedLocations.Count > 0)
             {
-                var currentLocation = await LocationHelper.GetCurrentLocationAsync();
-                if (!await LocationHelper.TryUpdateLocationsTravelInfoAsync(flaggedLocations, currentLocation))
+                var currentLocation = await CopterHelper.GetCurrentLocationAsync();
+                if (!await CopterHelper.TryUpdateLocationsTravelInfoAsync(flaggedLocations, currentLocation))
                 {
-                    LocationHelper.ShowToast("Can't get location/traffic info.");
+                    CopterHelper.ShowToast("Can't get location/traffic info.");
                 }
             }
         }
@@ -180,22 +180,24 @@ namespace Location
         /// <param name="locations">The locations to update.</param>
         /// <param name="currentLocation">The current location, providing context to disambiguate locations, if needed. </param>
         /// <returns>true if all the locations were successfully updated; false if a service failure occurred.</returns>
-        public static async Task<bool> TryUpdateLocationsTravelInfoAsync(IEnumerable<LocationData> locations, LocationData currentLocation)
+        public static async Task<bool> TryUpdateLocationsTravelInfoAsync(IEnumerable<CopterData> locations, CopterData currentLocation)
         {
             try
             {
+                /*
                 await Task.WhenAll(locations.Select(async location =>
                 {
-                    await LocationHelper.UpdateTravelInfoAsync(location, currentLocation);
+                    await CopterHelper.UpdateTravelInfoAsync(location, currentLocation);
 
                     int travelTimeDifference = location.CurrentTravelTime - location.CurrentTravelTimeWithoutTraffic;
 
                     if (location.IsMonitored && travelTimeDifference >= 10)
                     {
-                        LocationHelper.ShowToast(
+                        CopterHelper.ShowToast(
                             $"+{travelTimeDifference} min. to {location.Name}, total {location.CurrentTravelTime} min.");
                     }
                 }));
+                */
                 return true;
             }
             catch (Exception ex) when (ex.Message.Equals(routeFinderUnavailableMessage))
@@ -205,47 +207,7 @@ namespace Location
 
         }
 
-        /// <summary>
-        /// Updates the travel distance and time info for the specified location, relative to the specified current location.
-        /// </summary>
-        /// <param name="location">The location to update.</param>  
-        /// <param name="currentLocation">The current location.</param>
-        public static async Task UpdateTravelInfoAsync(LocationData location, LocationData currentLocation)
-        {
-            var routeResultTask = MapRouteFinder.GetDrivingRouteAsync(
-                currentLocation.Geopoint, location.Geopoint,
-                MapRouteOptimization.TimeWithTraffic, MapRouteRestrictions.None);
-            var routeResultWithoutTrafficTask = MapRouteFinder.GetDrivingRouteAsync(
-                currentLocation.Geopoint, location.Geopoint,
-                MapRouteOptimization.Time, MapRouteRestrictions.None);
-
-            MapRouteFinderResult routeResult = await routeResultTask;
-            MapRouteFinderResult routeResultWithoutTraffic = await routeResultWithoutTrafficTask;
-            if (routeResult.Status == MapRouteFinderStatus.Success)
-            {
-                location.FastestRoute = routeResult.Route;
-                location.CurrentTravelDistance = Math.Round(routeResult.Route.LengthInMeters * 0.00062137, 1); // convert to miles
-                location.CurrentTravelTime = (int)routeResult.Route.EstimatedDuration.TotalMinutes;
-                location.Timestamp = DateTimeOffset.Now;
-                if (routeResultWithoutTraffic.Status == MapRouteFinderStatus.Success)
-                {
-                    location.CurrentTravelTimeWithoutTraffic = routeResultWithoutTraffic.Route.EstimatedDuration.Minutes;
-                }
-                else
-                {
-                    // Fall back to the with-traffic value if the request fails.
-                    location.CurrentTravelTimeWithoutTraffic = routeResult.Route.EstimatedDuration.Minutes;
-                }
-            }
-            else if (routeResult.Status == MapRouteFinderStatus.UnknownError ||
-                routeResult.Status == MapRouteFinderStatus.InvalidCredentials ||
-                routeResult.Status == MapRouteFinderStatus.NetworkFailure ||
-                routeResult.Status == MapRouteFinderStatus.NotSupported)
-            {
-                throw new Exception(routeFinderUnavailableMessage);
-            }
-        }
-
+       
         /// <summary>
         /// Attempts to update either the address or the coordinates of the specified location 
         /// if the other value is missing, using the specified current location to provide 
@@ -253,7 +215,7 @@ namespace Location
         /// </summary>
         /// <param name="location">The location to update.</param>
         /// <param name="currentLocation">The current location.</param>
-        public static async Task<bool> TryUpdateMissingLocationInfoAsync(LocationData location, LocationData currentLocation)
+        public static async Task<bool> TryUpdateMissingLocationInfoAsync(CopterData location, CopterData currentLocation)
         {
             bool hasNoAddress = String.IsNullOrEmpty(location.Address);
             if (hasNoAddress && location.Position.Latitude == 0 && location.Position.Longitude == 0) return true;
