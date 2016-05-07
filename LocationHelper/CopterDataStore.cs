@@ -31,13 +31,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Geolocation;
 using Windows.Storage;
-
-namespace Location
+using EHang.CopterManagement;
+using EHang.Copters;
+namespace CopterHelper
 {
     /// <summary>
     /// Provides access to stored location data. 
     /// </summary>
-    public static class LocationDataStore
+    public static class CopterDataStore
     {
         private const string dataFileName = "EHangAppData.txt";
 
@@ -46,14 +47,14 @@ namespace Location
         /// location or around the Microsoft main campus if the Geolocator is unavailable. 
         /// </summary>
         /// <returns>The sample locations.</returns>
-        public static async Task<List<LocationData>> GetSampleLocationDataAsync()
+        public static async Task<List<CopterData>> GetSampleCopterDataAsync()
         {
-            var locations =new List<LocationData>();
+            var locations =new List<CopterData>();
             try
             {
 
 
-                var center = (await LocationHelper.GetCurrentLocationAsync())?.Position ??
+                var center = (await CopterHelper.GetCurrentLocationAsync())?.Position ??
                     new BasicGeoposition { Latitude = 47.640068, Longitude = -122.129858 };
 
                 int latitudeRange = 36000;
@@ -64,18 +65,27 @@ namespace Location
 
                 locations =
                    (from name in new[] { "1号机", "2号机", "3号机", "4号机" }
-                    select new LocationData
+                    select new CopterData
                     {
                         Name = name,
                         Position = new BasicGeoposition
                         {
                             Latitude = getCoordinate(latitudeRange, center.Latitude),
                             Longitude = getCoordinate(longitudeRange, center.Longitude)
-                        }
+                        },
+                        
+                      
+                        
                     }).ToList();
+                foreach (CopterData dt in locations)
+                {
+                    dt.Copter = CreateFakeCopter(dt.Name, dt.Position.Latitude, dt.Position.Longitude);
+                  
+                }
+
 
                 await Task.WhenAll(locations.Select(async location =>
-                    await LocationHelper.TryUpdateMissingLocationInfoAsync(location, null)));
+                    await CopterHelper.TryUpdateMissingLocationInfoAsync(location, null)));
 
             }
             catch (Exception e)
@@ -85,41 +95,48 @@ namespace Location
             return locations;
         }
 
+
+        private static ICopter CreateFakeCopter(string coptername, double copterlatitude, double copterlongitude)
+        {
+            var copter = new FakeCopter();
+            copter.SetProperties(id: coptername,name:coptername, latitude: copterlatitude, longitude: copterlongitude);
+            return copter;
+        }
         /// <summary>
         /// Load the saved location data from roaming storage. 
         /// </summary>
-        public static async Task<List<LocationData>> GetLocationDataAsync()
+        public static async Task<List<CopterData>> GetCopterDataAsync()
         {
-            List<LocationData> data = null;
+            List<CopterData> data = null;
             try
             {
                 StorageFile dataFile = await ApplicationData.Current.RoamingFolder.GetFileAsync(dataFileName);
                 string text = await FileIO.ReadTextAsync(dataFile);
                 byte[] bytes = Encoding.Unicode.GetBytes(text);
-                var serializer = new DataContractJsonSerializer(typeof(List<LocationData>));
+                var serializer = new DataContractJsonSerializer(typeof(List<CopterData>));
                 using (var stream = new MemoryStream(bytes))
                 {
-                    data = serializer.ReadObject(stream) as List<LocationData>;
+                    data = serializer.ReadObject(stream) as List<CopterData>;
                 }
             }
             catch (FileNotFoundException)
             {
                 // Do nothing.
             }
-            return data ?? new List<LocationData>();
+            return data ?? new List<CopterData>();
         }
 
         /// <summary>
         /// Save the location data to roaming storage. 
         /// </summary>
         /// <param name="locations">The locations to save.</param>
-        public static async Task SaveLocationDataAsync(IEnumerable<LocationData> locations)
+        public static async Task SaveCopterDataAsync(IEnumerable<CopterData> locations)
         {
             StorageFile sampleFile = await ApplicationData.Current.RoamingFolder.CreateFileAsync(
                 dataFileName, CreationCollisionOption.ReplaceExisting);
             using (MemoryStream stream = new MemoryStream())
             {
-                var serializer = new DataContractJsonSerializer(typeof(List<LocationData>));
+                var serializer = new DataContractJsonSerializer(typeof(List<CopterData>));
                 serializer.WriteObject(stream, locations.ToList());
                 stream.Position = 0;
                 using (StreamReader reader = new StreamReader(stream))

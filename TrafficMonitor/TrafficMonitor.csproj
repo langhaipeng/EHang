@@ -110,9 +110,9 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <ProjectReference Include="..\LocationHelper\LocationHelper.csproj">
+    <ProjectReference Include="..\LocationHelper\CopterHelper.csproj">
       <Project>{089d479e-9e0d-4296-9e04-12eca7549461}</Project>
-      <Name>LocationHelper</Name>
+      <Name>CopterHelper</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

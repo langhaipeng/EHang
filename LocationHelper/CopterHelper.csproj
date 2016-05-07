@@ -7,8 +7,8 @@
     <ProjectGuid>{089D479E-9E0D-4296-9E04-12ECA7549461}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LocationHelper</RootNamespace>
-    <AssemblyName>LocationHelper</AssemblyName>
+    <RootNamespace>CopterHelper</RootNamespace>
+    <AssemblyName>CopterHelper</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
@@ -111,9 +111,9 @@
   <ItemGroup>
     <Compile Include="BackgroundTaskHelper.cs" />
     <Compile Include="BindableBase.cs" />
-    <Compile Include="LocationData.cs" />
-    <Compile Include="LocationDataStore.cs" />
-    <Compile Include="LocationHelper.cs" />
+    <Compile Include="CopterData.cs" />
+    <Compile Include="CopterDataStore.cs" />
+    <Compile Include="CopterHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -121,6 +121,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="EHangGcsSdk.Contract">
+      <HintPath>..\references\EHangGcsSdk.Contract.dll</HintPath>
+    </Reference>
+    <Reference Include="EHangGcsSdk_UWP">
+      <HintPath>..\references\EHangGcsSdk_UWP.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
