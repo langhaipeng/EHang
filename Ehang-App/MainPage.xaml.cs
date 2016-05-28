@@ -51,6 +51,19 @@ using Microsoft.Practices.ServiceLocation;
 using CopterHelper;
 using EHang.Messaging;
 using GalaSoft.MvvmLight.Messaging;
+using EHang.CopterControllers;
+using Windows.Networking.Proximity;
+using System.Threading;
+using System.IO;
+
+
+using Windows.Devices.Bluetooth.Rfcomm;
+using Windows.System.Threading;
+using Windows.Storage;
+using Windows.Storage.Search;
+using Windows.UI.Xaml.Media.Imaging;
+using EHang.Geography;
+using Windows.UI;
 
 namespace EHangApp
 {
@@ -67,7 +80,6 @@ namespace EHangApp
         public ICopter _copter;
         private ICopterManager _copterManager = ServiceLocator.Current.GetInstance<ICopterManager>();
         private IMessenger _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
-
         #region Location data
 
         /// <summary>
@@ -114,8 +126,6 @@ namespace EHangApp
 
         #endregion Location data
 
-        #region Initialization and navigation code
-
         /// <summary>
         /// Initializes a new instance of the class and sets up the association
         /// between the Locations and MappedLocations collections. 
@@ -150,42 +160,28 @@ namespace EHangApp
                 AddOrMoveCopter(m.Copter);
             });
             DataContext = new MainViewModel();
+
             CopterHelper.CopterHelper.RegisterTrafficMonitor();
+
+           
+
+
+
+
         }
+
+    
 
         private void AddOrMoveCopter(ICopter copter)
         {
-            (this.LocationsView.SelectedItem as CopterData).Position=new BasicGeoposition { Latitude = copter.Latitude, Longitude = copter.Longitude };
-            /*
-            var location = new Location(copter.Latitude, copter.Longitude);
-            if (_copterMarker == null)
-            {
-                _copterMarker = new MapPolygon
+            if((copter.State!=CopterState.Initialized)&& (copter.State != CopterState.Locked))
                 {
-                    Width = 20,
-                    Height = 20,
-                    Background = new SolidColorBrush(Colors.Red)
-                };
-                map.Children.Add(_copterMarker);
-
-                map.Center = location;
+                (this.LocationsView.SelectedItem as CopterData).Position = new BasicGeoposition { Latitude = copter.Latitude, Longitude = copter.Longitude };
             }
-            MapLayer.SetPosition(_copterMarker, location);
-            */
+               
         }
 
-
-        /// <summary>
-        /// 创建虚拟飞行器代理对象。
-        /// </summary>
-        /// <returns><see cref="ICopter"/> 实例。</returns>
-        private static ICopter CreateFakeCopter()
-        {
-            var copter = new FakeCopter();
-            copter.SetProperties(id: "FakeCopter", latitude: 23.14183333, longitude: 113.40184166);
-            return copter;
-        }
-
+        #region todo
 
         /// <summary>
         /// Loads the saved location data on first navigation, and 
@@ -222,8 +218,7 @@ namespace EHangApp
             NetworkInformation.NetworkStatusChanged -= NetworkInformation_NetworkStatusChanged;
         }
 
-        #endregion Initialization and navigation code
-
+      
         #region Geolocator and network status and map refresh code
 
         /// <summary>
@@ -280,6 +275,7 @@ namespace EHangApp
         {
             CopterData currentLocation = null;
             if (isGeolocatorReady) currentLocation = await this.GetCurrentLocationAsync();
+
             if (currentLocation != null)
             {
                 if (this.MappedLocations.Count > 0 && this.MappedLocations[0].IsCurrentLocation)
@@ -295,13 +291,25 @@ namespace EHangApp
             var bounds = GeoboundingBox.TryCompute(positions);
             double viewWidth = ApplicationView.GetForCurrentView().VisibleBounds.Width;
             var margin = new Thickness((viewWidth >= 500 ? 300 : 10), 10, 10, 10);
-            bool isSuccessful = await this.InputMap.TrySetViewBoundsAsync(bounds, margin, MapAnimationKind.Default);
+            bool isSuccessful=false;
+
+            try
+            {
+                 isSuccessful = await this.InputMap.TrySetViewBoundsAsync(bounds, margin, MapAnimationKind.Default);
+            }
+            catch (Exception e)
+            {
+                var x = e.Message;
+            }
             if (isSuccessful && positions.Count < 2) this.InputMap.ZoomLevel = 12;
             else if (!isSuccessful && positions.Count > 0)
             {
                 this.InputMap.Center = new Geopoint(positions[0]);
                 this.InputMap.ZoomLevel = 12;
-            } 
+            } else
+            {
+                var sss = "";
+            }
             if (currentLocation != null) await this.TryUpdateLocationsTravelInfoAsync(this.Locations, currentLocation);
         }
 
@@ -438,13 +446,90 @@ namespace EHangApp
         private async void InputMap_MapHolding(MapControl sender, MapInputEventArgs args)
         {
             var location = new CopterData { Position = args.Location.Position };
+            
+            var pos = args.Location;
+             //InputMap.GetLocationFromOffset(args.Location.Position, out pos);
+            // if ((_copterManager.Copter.IsConnected) )//&& (_copterManager.Copter.State.Equals(CopterState.CommandMode)))
+            {
 
-            // Resolve the address given the geocoordinates. In this case, because the 
-            // location is unambiguous, there is no need to pass in the current location.
-           // await CopterHelper.CopterHelper.TryUpdateMissingLocationInfoAsync(location, null);
+                // await _copterManager.UnlockAsync();
+                string msg = "当前飞机位置：高度-" + _copterManager.Copter.Altitude.ToString() + ";\n";
+                msg += "经度-" + _copterManager.Copter.Longitude.ToString() + ";纬度-" + _copterManager.Copter.Latitude.ToString() + ";\n";
+                msg += "要飞往位置：距离-" + this.CalcDistance(_copterManager.Copter, pos) + "米;\n";
+                msg += "经度-" + pos.Position.Longitude.ToString() + ";纬度-" + pos.Position.Latitude.ToString() + ";\n";
+                var dialog = new ContentDialog()
+                {
+                    Title = "消息提示",
+                    Content = msg,
+                    PrimaryButtonText = "确定",
+                    SecondaryButtonText = "取消",
+                    FullSizeDesired = false,
+                };
 
-            //this.EditNewLocation(location);
+                dialog.PrimaryButtonClick += (_s, _e) => { };
+                ContentDialogResult result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    await _copterManager.FlyToAsync(pos.Position.Latitude, pos.Position.Longitude);
+                    /*
+                    bool isFly = await _copterManager.CheckStatusAndFlyToAsync(pos.Position.Latitude, pos.Position.Longitude);
+                    if (!isFly)
+                    {
+                        string retMsg = _copterManager.Copter.StatusText;
+                        if(retMsg==null)
+                        {
+                            retMsg = "飞行器状态不容许飞行。";
+                        }
+                        MessageDialog diag = new MessageDialog(retMsg);
+                        await diag.ShowAsync();
+                    }
+                    */
+
+                    this.setMapIconAndLine(pos);
+
+
+
+                }
+
+            }
         }
+
+        private void setMapIconAndLine(Geopoint pos)
+        {
+
+            var copterdata = (this.SelectedLocation as CopterData);
+            //插入图片，并画线
+            MapIcon mapIcon1 = new MapIcon();
+            mapIcon1.Location = pos;
+            
+            mapIcon1.NormalizedAnchorPoint = new Point(0.5, 1.0);
+            mapIcon1.Title = "目的地";
+            mapIcon1.ZIndex = 0;
+            if(copterdata.DestmapIcon!=null)
+            {
+                this.InputMap.MapElements.Remove(copterdata.DestmapIcon);
+            }
+            this.InputMap.MapElements.Add(mapIcon1);
+            copterdata.DestmapIcon = mapIcon1;
+                    MapPolyline mapPolyline = new MapPolyline();
+            mapPolyline.Path = new Geopath(new List<BasicGeoposition>() {
+         new BasicGeoposition() {Latitude=_copterManager.Copter.Latitude, Longitude=_copterManager.Copter.Longitude },
+         new BasicGeoposition() {Latitude=pos.Position.Latitude, Longitude=pos.Position.Longitude },
+
+   });
+
+            mapPolyline.ZIndex = 1;
+            mapPolyline.StrokeColor = Colors.Blue;
+            mapPolyline.StrokeThickness = 3;
+            mapPolyline.StrokeDashed = false;
+            if (copterdata.DestmapLine != null)
+            {
+                this.InputMap.MapElements.Remove(copterdata.DestmapLine);
+            }
+            this.InputMap.MapElements.Add(mapPolyline);
+            copterdata.DestmapLine = mapPolyline;
+        }
+
 
         #endregion Primary commands: app-bar buttons, map holding gesture
 
@@ -708,9 +793,36 @@ namespace EHangApp
 
         #endregion Map selection mode for repositioning a location
 
-        private void MainPageButton_Click(object sender, RoutedEventArgs e)
+        private async void MainPageButton_Click(object sender, RoutedEventArgs e)
         {
 
+           
+
+        }
+
+        async void query_ContentsChanged(Windows.Storage.Search.IStorageQueryResultBase sender, object args)
+        {
+            System.Diagnostics.Debug.WriteLine("file add in picture folder");
+            QueryOptions queryOptions = new QueryOptions(CommonFileQuery.OrderByDate, null)
+            {
+                IndexerOption = IndexerOption.DoNotUseIndexer,
+                FolderDepth = FolderDepth.Deep,
+            };
+            StorageFileQueryResult queryResult = KnownFolders.PicturesLibrary.CreateFileQueryWithOptions(queryOptions);
+
+            IReadOnlyCollection<StorageFile> files = await queryResult.GetFilesAsync(0, 1);
+            /*
+            await Dispatcher.RunAsync(
+            CoreDispatcherPriority.High,
+            () =>
+            {
+
+                var imgpath = files.FirstOrDefault<StorageFile>().Path;
+                var bitmapImage = new BitmapImage(new Uri(imgpath, UriKind.Relative));
+                this.CapturedImage.Source = bitmapImage;
+            }
+            );
+            */
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -756,35 +868,178 @@ namespace EHangApp
         private void LocationsView_Tapped(object sender, TappedRoutedEventArgs e)
         {
             //var flyout = Flyout.GetAttachedFlyout(sender as FrameworkElement) as Flyout;
-
-           // flyout.ShowAt(sender as FrameworkElement);
+            // flyout.ShowAt(sender as FrameworkElement);
 
         }
 
+        #endregion
+
+        /// <summary>
+        /// 创建虚拟飞行器代理对象。
+        /// </summary>
+        /// <returns><see cref="ICopter"/> 实例。</returns>
+        private static ICopter CreateFakeCopter()
+        {
+            var copter = new FakeCopter();
+            copter.SetProperties(id: "FakeCopter", latitude: 23.14183333, longitude: 113.40184166);
+            return copter;
+        }
+
+        public async Task<ICopter> Foo()
+        {
+            try
+            {
+                // 获取已配对的 VR 眼镜/G-BOX 列表。注意：由于 UWP 的限制，需要先在系统设置中配对，密码是 1234。
+                string deviceid = RfcommDeviceService.GetDeviceSelector(RfcommServiceId.SerialPort);
+                var services = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(deviceid);
+                var service = services[0];
+                var peers = await FindBluetoothPeersAsync();
+                var peer = peers.FirstOrDefault();
+                var rfcommService = await RfcommDeviceService.FromIdAsync(service.Id);
+
+                //if (rfcommService != null)
+                {
+
+                    // 创建使用蓝牙连接的飞行器对象。
+                    var x = rfcommService.ConnectionHostName.ToString();
+                    var copter1 = CreateBluetoothCopter(x, "EHANG GHOST");
+                    return copter1;
+                }
+            }catch(Exception ex)
+            {
+                string retMsg = "连接飞行器失败，返回信息为：" + ex.ToString();
+            MessageDialog diag = new MessageDialog(retMsg);
+            await diag.ShowAsync();
+                return null;
+            }
+    }
+
+        private async Task<IReadOnlyList<PeerInformation>> getBTs()
+        {
+            IReadOnlyList<PeerInformation> peers = await PeerFinder.FindAllPeersAsync();
+            if (peers.Count > 0)
+            {
+            }
+            return peers;
+        }
+
+        /// <summary>
+        /// 获取已配对的 VR 眼镜/G-BOX 列表。注意：由于 UWP 的限制，需要先在系统设置中配对，密码是 1234。
+        /// </summary>
+        /// <returns>已配对的 VR 眼镜/G-BOX 列表。</returns>
+        private async Task<IEnumerable<PeerInformation>> FindBluetoothPeersAsync()
+        {
+
+
+            try
+            {
+                PeerFinder.Start();
+                PeerFinder.AlternateIdentities["Bluetooth:PAIRED"] = string.Empty;
+                var peers = (await PeerFinder.FindAllPeersAsync());//.Where(p => p.DisplayName.StartsWith("EHANG"));
+                return peers;
+            }
+            catch (Exception ex)
+            {
+                throw;  // 无蓝牙设备或者未开启蓝牙。
+            }
+
+
+        }
+
+        private ICopter CreateBluetoothCopter(string hostName, string copterName)
+        {
+            var connection = new BluetoothConnection(hostName);
+            var copter = new EHCopter(connection, SynchronizationContext.Current)
+            {
+                Id = "Bluetooth_" + hostName,
+                Name = copterName
+            };
+            return copter;
+        }
         private async void MenuFlyoutItem_Connect_Click(object sender, RoutedEventArgs e)
         {
-            //var copter = (this.SelectedLocation as CopterData).Copter;
-            var copter = (LocationsView.SelectedItem as CopterData).Copter;
-            double y1 = copter.Longitude;
-            double y2 = copter.Latitude;
+            var copter = (this.SelectedLocation as CopterData).Copter;
+           // var copter = (LocationsView.SelectedItem as CopterData).Copter;
+            //double y1 = copter.Longitude;
+            //double y2 = copter.Latitude;
 
-            await _copterManager.ConnectAsync(copter);
+           // await _copterManager.ConnectAsync(copter);
 
-            double x1=copter.Longitude;
-            double x2 = copter.Latitude;
+            //double x1=copter.Longitude;
+            //double x2 = copter.Latitude;
+
+           // ICopter copter = await Foo();
+            (this.SelectedLocation as CopterData).Copter = copter;
+           await _copterManager.ConnectAsync(copter);
+            //MessageDialog diag = new MessageDialog(_copterManager.Copter.StatusText);
+            //await diag.ShowAsync();
         }
 
-       
+
         private async void InputMap_RightTapped(object sender, RightTappedRoutedEventArgs e)
         {
-            e.Handled = true;
 
-            var bposition = new BasicGeoposition();
-            var pos = new Geopoint(bposition);
-            InputMap.GetLocationFromOffset(e.GetPosition(InputMap), out pos);
+        
+
+        }
+
+        private async void MenuFlyoutItem_Return_Click(object sender, RoutedEventArgs e)
+        {
+            await _copterManager.ReturnToLaunchAsync();
+        }
+
+        private async void MenuFlyoutItem_TakeOff_Click(object sender, RoutedEventArgs e)
+        {
+           // await _copterManager.UnlockAsync();
+            await _copterManager.TakeOffAsync();
+        }
+
+        private async void MenuFlyoutItem_UnLock_Click(object sender, RoutedEventArgs e)
+        {
+            
             await _copterManager.UnlockAsync();
-            await _copterManager.FlyToAsync(pos.Position.Latitude, pos.Position.Longitude);
+        }
 
+        private async void MenuFlyoutItem_Lock_Click(object sender, RoutedEventArgs e)
+        {
+               MessageDialog diag = new MessageDialog("真的要锁定吗？螺旋桨将立即停转。");
+            diag.Commands.Add(new UICommand("确定", cmd => { }, commandId: 0));
+            diag.Commands.Add(new UICommand("取消", cmd => { }, commandId: 1));
+
+
+           IUICommand cmd1= await diag.ShowAsync();
+            if (cmd1.Label == "确定")
+            {
+                await _copterManager.LockAsync();
+            }
+        }
+
+        private async void MenuFlyoutItem_Hover_Click(object sender, RoutedEventArgs e)
+        {
+          await  _copterManager.HoverAsync();
+        }
+
+        private async void MenuFlyoutItem_Landing_Click(object sender, RoutedEventArgs e)
+        {
+            await _copterManager.LandAsync();
+        }
+        private async void MenuFlyoutItem_Disconnect_Click(object sender, RoutedEventArgs e)
+        {
+            await _copterManager.DisconnectAsync();
+        }
+
+
+        public  double CalcDistance(ICopter copter, Geopoint loc2)
+        {
+            if (copter == null)
+            {
+                throw new ArgumentNullException(nameof(copter));
+            }
+            if (loc2 == null)
+            {
+                throw new ArgumentNullException(nameof(loc2));
+            }
+            return GeographyUtils.CalcDistance(copter.Latitude, copter.Longitude, copter.Altitude, loc2.Position.Latitude, loc2.Position.Longitude, copter.Altitude);
         }
     }
 }

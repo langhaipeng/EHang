@@ -55,7 +55,7 @@ namespace CopterHelper
         static CopterHelper()
         {
             // TODO Replace the placeholder string below with your own Bing Maps key from https://www.bingmapsportal.com
-            MapService.ServiceToken = "<insert your Bing Maps key here>";
+            MapService.ServiceToken = "gPWwQYVbKj3ksvXdKT4o~JBNY-UlSbfIAo6hrfgBSNw~AoHF1pLbkfZRvoc6Z0y3QuvheC0TCCYi_vd7kkaCHoK8s-bR3NJSpmnjx9L7DbTv";
         }
 
         /// <summary>
@@ -77,7 +77,8 @@ namespace CopterHelper
                         var token = CopterHelper.CancellationTokenSource.Token;
 
                         Geoposition position = await Geolocator.GetGeopositionAsync().AsTask(token);
-                        return new CopterData { Position = position.Coordinate.Point.Position };
+                        double[] inputGeopoint=GpsCorrect.transform(position.Coordinate.Latitude,position.Coordinate.Longitude);
+                        return new CopterData { Position = new BasicGeoposition { Longitude= inputGeopoint[1],Latitude= inputGeopoint[0] } };
 
                     case GeolocationAccessStatus.Denied: 
                     case GeolocationAccessStatus.Unspecified:

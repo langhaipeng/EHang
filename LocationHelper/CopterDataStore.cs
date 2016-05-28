@@ -61,7 +61,7 @@ namespace CopterHelper
                 int longitudeRange = 53000;
                 var random = new Random();
                 Func<int, double, double> getCoordinate = (range, midpoint) =>
-                    (random.Next(range) - (range / 2)) * 0.00001 + midpoint;
+                    (random.Next(range) - (range / 2)) * 0.00000005 + midpoint;
 
                 locations =
                    (from name in new[] { "1号机", "2号机", "3号机", "4号机" }
@@ -80,6 +80,7 @@ namespace CopterHelper
                 foreach (CopterData dt in locations)
                 {
                     dt.Copter = CreateFakeCopter(dt.Name, dt.Position.Latitude, dt.Position.Longitude);
+                  
                   
                 }
 

@@ -114,6 +114,7 @@
     <Compile Include="CopterData.cs" />
     <Compile Include="CopterDataStore.cs" />
     <Compile Include="CopterHelper.cs" />
+    <Compile Include="GpsCorrect.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

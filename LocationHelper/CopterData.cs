@@ -32,6 +32,8 @@ using EHang.Communication;
 using EHang.CopterManagement;
 using CopterHelper;
 using EHang.Messaging;
+using Windows.UI.Xaml.Controls.Maps;
+
 namespace CopterHelper
 {
     /// <summary>
@@ -73,6 +75,33 @@ namespace CopterHelper
             }
         }
 
+        private MapIcon destmapIcon;
+        public MapIcon DestmapIcon
+        {
+            get
+            {
+                return destmapIcon;
+            }
+
+            set
+            {
+                destmapIcon = value;
+            }
+        }
+
+        private MapPolyline destmapLine;
+        public MapPolyline DestmapLine
+        {
+            get
+            {
+                return destmapLine;
+            }
+
+            set
+            {
+                destmapLine = value;
+            }
+        }
         /// <summary>
         /// Gets a Geopoint representation of the current location for use with the map service APIs.
         /// </summary>
@@ -179,38 +208,43 @@ namespace CopterHelper
             }
         }
 
-        public ICopterManager CopterManager
-        {
-            get
-            {
-                return copterManager;
-            }
+      
 
-            set
-            {
-                copterManager = value;
-            }
-        }
 
-        public IEHMessenger Messager
-        {
-            get
-            {
-                return messager;
-            }
 
-            set
-            {
-                messager = value;
-            }
-        }
+        /*
+public ICopterManager CopterManager
+{
+   get
+   {
+       return copterManager;
+   }
 
+   set
+   {
+       copterManager = value;
+   }
+}
+
+public IEHMessenger Messager
+{
+   get
+   {
+       return messager;
+   }
+
+   set
+   {
+       messager = value;
+   }
+}
+*/
         private ICopter copter;
 
 
-        private ICopterManager copterManager;
+       // private ICopterManager copterManager;
 
-        private IEHMessenger messager;
+      //  private IEHMessenger messager;
 
         /// <summary>
         /// Returns the name of the location, or the geocoordinates if there is no name. 
