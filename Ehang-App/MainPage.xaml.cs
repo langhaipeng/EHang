@@ -78,8 +78,8 @@ namespace EHangApp
         private bool isMapSelectionEnabled;
         private bool isExistingLocationBeingRepositioned;
         public ICopter _copter;
-        private ICopterManager _copterManager = ServiceLocator.Current.GetInstance<ICopterManager>();
-        private IMessenger _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
+        private IEnumerable<ICopterManager> _copterManagers = ServiceLocator.Current.GetAllInstances<ICopterManager>();
+        private IEnumerable<IMessenger> _messengers = ServiceLocator.Current.GetAllInstances<IMessenger>();
         #region Location data
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace EHangApp
                     this.selectedLocation = newValue;
 
                 }
-                 //this.flyinfo.DataContext=(value as CopterData).Copter;
+                 this.copterINfo.DataContext=(value as CopterData).Copter;
                // this.EditLocation(value as CopterData);
             }
         }
@@ -151,14 +151,13 @@ namespace EHangApp
             // Update the freshness timestamp every minute;
             Helpers.StartTimer(1, () => { foreach (var location in this.Locations) location.RefreshFormattedTimestamp(); });
 
-           // _messenger.Register<CopterConnectedMessage>(this, m =>
-          //  {
-          //      AddOrMoveCopter(m.Copter);
-          //  });
-            _messenger.Register<CopterLocationChangedMessage>(this, m =>
+            foreach (var _messenger in _messengers)
             {
-                AddOrMoveCopter(m.Copter);
-            });
+                _messenger.Register<CopterLocationChangedMessage>(this, m =>
+                {
+                    AddOrMoveCopter(m.Copter);
+                });
+            }
             DataContext = new MainViewModel();
 
             CopterHelper.CopterHelper.RegisterTrafficMonitor();
@@ -176,7 +175,13 @@ namespace EHangApp
         {
             if((copter.State!=CopterState.Initialized)&& (copter.State != CopterState.Locked))
                 {
-                (this.LocationsView.SelectedItem as CopterData).Position = new BasicGeoposition { Latitude = copter.Latitude, Longitude = copter.Longitude };
+                foreach (var copterdata in this.LocationsView.Items)
+                {
+                    if ((copterdata as CopterData).Name == copter.Name)
+                    {
+                        (copterdata as CopterData).Position = new BasicGeoposition { Latitude = copter.Latitude, Longitude = copter.Longitude };
+                    }
+                }
             }
                
         }
@@ -448,6 +453,7 @@ namespace EHangApp
             var location = new CopterData { Position = args.Location.Position };
             
             var pos = args.Location;
+            var _copterManager = ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name);
              //InputMap.GetLocationFromOffset(args.Location.Position, out pos);
             // if ((_copterManager.Copter.IsConnected) )//&& (_copterManager.Copter.State.Equals(CopterState.CommandMode)))
             {
@@ -485,7 +491,7 @@ namespace EHangApp
                     }
                     */
 
-                    this.setMapIconAndLine(pos);
+                    this.setMapIconAndLine(pos,_copterManager);
 
 
 
@@ -494,7 +500,7 @@ namespace EHangApp
             }
         }
 
-        private void setMapIconAndLine(Geopoint pos)
+        private void setMapIconAndLine(Geopoint pos,ICopterManager _copterManager)
         {
 
             var copterdata = (this.SelectedLocation as CopterData);
@@ -970,7 +976,7 @@ namespace EHangApp
 
            // ICopter copter = await Foo();
             (this.SelectedLocation as CopterData).Copter = copter;
-           await _copterManager.ConnectAsync(copter);
+           await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).ConnectAsync(copter);
             //MessageDialog diag = new MessageDialog(_copterManager.Copter.StatusText);
             //await diag.ShowAsync();
         }
@@ -985,19 +991,19 @@ namespace EHangApp
 
         private async void MenuFlyoutItem_Return_Click(object sender, RoutedEventArgs e)
         {
-            await _copterManager.ReturnToLaunchAsync();
+             await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).ReturnToLaunchAsync();
         }
 
         private async void MenuFlyoutItem_TakeOff_Click(object sender, RoutedEventArgs e)
         {
            // await _copterManager.UnlockAsync();
-            await _copterManager.TakeOffAsync();
+            await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).TakeOffAsync();
         }
 
         private async void MenuFlyoutItem_UnLock_Click(object sender, RoutedEventArgs e)
         {
             
-            await _copterManager.UnlockAsync();
+            await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).UnlockAsync();
         }
 
         private async void MenuFlyoutItem_Lock_Click(object sender, RoutedEventArgs e)
@@ -1010,22 +1016,22 @@ namespace EHangApp
            IUICommand cmd1= await diag.ShowAsync();
             if (cmd1.Label == "确定")
             {
-                await _copterManager.LockAsync();
+                await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).LockAsync();
             }
         }
 
         private async void MenuFlyoutItem_Hover_Click(object sender, RoutedEventArgs e)
         {
-          await  _copterManager.HoverAsync();
+          await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).HoverAsync();
         }
 
         private async void MenuFlyoutItem_Landing_Click(object sender, RoutedEventArgs e)
         {
-            await _copterManager.LandAsync();
+            await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).LandAsync();
         }
         private async void MenuFlyoutItem_Disconnect_Click(object sender, RoutedEventArgs e)
         {
-            await _copterManager.DisconnectAsync();
+            await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).DisconnectAsync();
         }
 
 

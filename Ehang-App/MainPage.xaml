@@ -234,7 +234,7 @@ THE SOFTWARE.
                 </StackPanel>
                 <StackPanel  Grid.Row="2">
                     <TextBlock Text="飞行状态信息:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                    <Grid DataContext="{Binding CopterManager.Copter}">
+                    <Grid Name="copterINfo">
                         <Grid.Resources>
                             <Style x:Key="CopterInfo_ComboBox"
                    TargetType="ComboBox">
