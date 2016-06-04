@@ -109,138 +109,20 @@ namespace CopterHelper
             }
         }
 
-        /// <summary>
-        /// Launches the Maps app and displays the route from the current location
-        /// to the specified location.
-        /// </summary>
-        /// <param name="location">The location to display the route to.</param>
-        public static async Task ShowRouteToLocationInMapsAppAsync(CopterData location, CopterData currentLocation)
+
+        public static async Task<Windows.Data.Xml.Dom.XmlDocument> LoadXmlFile(String folder, String file)
         {
-            var mapUri = new Uri("bingmaps:?trfc=1&rtp=" + 
-                $"pos.{Math.Round(currentLocation.Position.Latitude, 6)}_{Math.Round(currentLocation.Position.Longitude, 6)}~" + 
-                $"pos.{location.Position.Latitude}_{location.Position.Longitude}");
-            await Windows.System.Launcher.LaunchUriAsync(mapUri);
+            Windows.Storage.StorageFolder storageFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync(folder);
+            Windows.Storage.StorageFile storageFile = await storageFolder.GetFileAsync(file);
+            Windows.Data.Xml.Dom.XmlLoadSettings loadSettings = new Windows.Data.Xml.Dom.XmlLoadSettings();
+            loadSettings.ProhibitDtd = false;
+            loadSettings.ResolveExternals = false;
+           // loadSettings.ElementContentWhiteSpace = true;
+            return await Windows.Data.Xml.Dom.XmlDocument.LoadFromFileAsync(storageFile, loadSettings);
         }
 
-        /// <summary>
-        /// Shows the specified text in a toast notification if notifications are enabled.
-        /// </summary>
-        /// <param name="text">The text to show.</param>
-        private static void ShowToast(string text)
-        {
-            var toastXml = new XmlDocument();
-            toastXml.LoadXml("<toast duration='short'><visual><binding template='ToastText01'>" +
-                $"<text id='1'>{text}</text></binding></visual></toast>");
-            var toast = new ToastNotification(toastXml);
-            ToastNotificationManager.CreateToastNotifier().Show(toast);
-        }
 
-        /// <summary>
-        /// Registers the TrafficMonitor background task.
-        /// </summary>
-        public static void RegisterTrafficMonitor()
-        {
-            BackgroundTaskHelper.RegisterBackgroundTask(
-                taskEntryPoint: "TrafficMonitor.TrafficMonitor",
-                taskName: "TrafficMonitor",
-                trigger: new MaintenanceTrigger(freshnessTime: 15, oneShot: false),
-                condition: new SystemCondition(SystemConditionType.InternetAvailable));
-        }
 
-        /// <summary>
-        /// Unregisters the TrafficMonitor background task.
-        /// </summary>
-        public static void UnregisterTrafficMonitor()
-        {
-            BackgroundTaskHelper.UnregisterBackgroundTask("TrafficMonitor");
-        }
-
-        /// <summary>
-        /// Loads the location data from storage then raises an alert for each flagged location 
-        /// if traffic is currently increasing the travel time by 10 minutes or more.
-        /// </summary>
-        public static async Task CheckTravelInfoForMonitoredLocationsAsync()
-        {
-            var locations = await CopterDataStore.GetCopterDataAsync();
-            var flaggedLocations = locations.Where(location => location.IsMonitored).ToList();
-            if (flaggedLocations.Count > 0)
-            {
-                var currentLocation = await CopterHelper.GetCurrentLocationAsync();
-                if (!await CopterHelper.TryUpdateLocationsTravelInfoAsync(flaggedLocations, currentLocation))
-                {
-                    CopterHelper.ShowToast("Can't get location/traffic info.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Attempts to update the travel distance and time info for the specified locations, 
-        /// relative to the current location, and raises an alert for each flagged location 
-        /// if traffic is currently increasing the travel time by 10 minutes or more.
-        /// </summary>
-        /// <param name="locations">The locations to update.</param>
-        /// <param name="currentLocation">The current location, providing context to disambiguate locations, if needed. </param>
-        /// <returns>true if all the locations were successfully updated; false if a service failure occurred.</returns>
-        public static async Task<bool> TryUpdateLocationsTravelInfoAsync(IEnumerable<CopterData> locations, CopterData currentLocation)
-        {
-            try
-            {
-                /*
-                await Task.WhenAll(locations.Select(async location =>
-                {
-                    await CopterHelper.UpdateTravelInfoAsync(location, currentLocation);
-
-                    int travelTimeDifference = location.CurrentTravelTime - location.CurrentTravelTimeWithoutTraffic;
-
-                    if (location.IsMonitored && travelTimeDifference >= 10)
-                    {
-                        CopterHelper.ShowToast(
-                            $"+{travelTimeDifference} min. to {location.Name}, total {location.CurrentTravelTime} min.");
-                    }
-                }));
-                */
-                return true;
-            }
-            catch (Exception ex) when (ex.Message.Equals(routeFinderUnavailableMessage))
-            {
-                return false;
-            }
-
-        }
-
-       
-        /// <summary>
-        /// Attempts to update either the address or the coordinates of the specified location 
-        /// if the other value is missing, using the specified current location to provide 
-        /// context for prioritizing multiple locations returned for an address.  
-        /// </summary>
-        /// <param name="location">The location to update.</param>
-        /// <param name="currentLocation">The current location.</param>
-        public static async Task<bool> TryUpdateMissingLocationInfoAsync(CopterData location, CopterData currentLocation)
-        {
-            bool hasNoAddress = String.IsNullOrEmpty(location.Address);
-            if (hasNoAddress && location.Position.Latitude == 0 && location.Position.Longitude == 0) return true;
-
-            var results = hasNoAddress ?
-                await MapLocationFinder.FindLocationsAtAsync(location.Geopoint) :
-                await MapLocationFinder.FindLocationsAsync(location.Address, currentLocation.Geopoint);
-
-            if (results.Status == MapLocationFinderStatus.Success && results.Locations.Count > 0)
-            {
-                var result = results.Locations.First();
-                location.Position = result.Point.Position;
-                location.Address = result.Address.FormattedAddress;
-                if (String.IsNullOrEmpty(location.Name)) location.Name = result.Address.Town;
-
-                // Sometimes the returned address is poorly formatted. This fixes one of the issues.
-                if (location.Address.Trim().StartsWith(",")) location.Address = location.Address.Trim().Substring(1).Trim();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
 
     }
 

@@ -33,6 +33,12 @@ using Windows.Devices.Geolocation;
 using Windows.Storage;
 using EHang.CopterManagement;
 using EHang.Copters;
+using Windows.Networking.Proximity;
+using Windows.Devices.Bluetooth.Rfcomm;
+using EHang.Communication;
+using System.Threading;
+using Windows.UI.Popups;
+using Windows.Data.Xml.Dom;
 namespace CopterHelper
 {
     /// <summary>
@@ -63,46 +69,128 @@ namespace CopterHelper
                 Func<int, double, double> getCoordinate = (range, midpoint) =>
                     (random.Next(range) - (range / 2)) * 0.00000005 + midpoint;
 
-                locations =
-                   (from name in new[] { "1号机", "2号机", "3号机", "4号机" }
-                    select new CopterData
+                XmlDocument doc = await CopterHelper.LoadXmlFile("config", "copters.xml");
+
+                 var nodelist = doc.DocumentElement.SelectNodes("/copters/copter");
+               string[] copterNames = new string[nodelist.Count];
+                int i = 0;
+                foreach(var node in nodelist)
+                {
+                    copterNames[i] = node.Attributes.GetNamedItem("name").NodeValue.ToString();
+                    i++;
+                }
+                locations =new List<CopterData>();
+                foreach (var node in nodelist)
+                {
+                    CopterData dt = new CopterData();
+                    dt.Name = node.Attributes.GetNamedItem("name").NodeValue.ToString();
+                    dt.Type = node.Attributes.GetNamedItem("type").NodeValue.ToString();
+                    dt.Hostname = node.Attributes.GetNamedItem("hostname").NodeValue.ToString();
+                   
+                    if (dt.Type == "fake")
                     {
-                        Name = name,
-                        Position = new BasicGeoposition
+                        dt.Position = new BasicGeoposition
                         {
                             Latitude = getCoordinate(latitudeRange, center.Latitude),
                             Longitude = getCoordinate(longitudeRange, center.Longitude)
-                        },
-                        
-                      
-                        
-                    }).ToList();
-                foreach (CopterData dt in locations)
-                {
-                    dt.Copter = CreateFakeCopter(dt.Name, dt.Position.Latitude, dt.Position.Longitude);
-                  
-                  
+                        };
+                        dt.Copter = CreateFakeCopter(dt.Name, dt.Position.Latitude, dt.Position.Longitude);
+                    }
+                    else if (dt.Type == "bluetooth")
+                    {
+                        dt.Copter = CreateBluetoothCopter(dt.Hostname, dt.Name);
+                        dt.Position = center;
+                    }
+                    locations.Add(dt);
                 }
 
 
-                await Task.WhenAll(locations.Select(async location =>
-                    await CopterHelper.TryUpdateMissingLocationInfoAsync(location, null)));
+          
 
             }
             catch (Exception e)
             {
-                
+                throw;
             }
             return locations;
         }
 
-
+        #region copter
         private static ICopter CreateFakeCopter(string coptername, double copterlatitude, double copterlongitude)
         {
             var copter = new FakeCopter();
             copter.SetProperties(id: coptername,name:coptername, latitude: copterlatitude, longitude: copterlongitude);
             return copter;
         }
+
+     
+
+        public static  async Task<ICopter> Foo()
+        {
+            try
+            {
+                // 获取已配对的 VR 眼镜/G-BOX 列表。注意：由于 UWP 的限制，需要先在系统设置中配对，密码是 1234。
+                string deviceid = RfcommDeviceService.GetDeviceSelector(RfcommServiceId.SerialPort);
+                var services = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(deviceid);
+                var service = services[0];
+                var peers = await FindBluetoothPeersAsync();
+                var peer = peers.FirstOrDefault();
+                var rfcommService = await RfcommDeviceService.FromIdAsync(service.Id);
+
+                //if (rfcommService != null)
+                {
+
+                    // 创建使用蓝牙连接的飞行器对象。
+                    var x = rfcommService.ConnectionHostName.ToString();
+                    var copter1 = CreateBluetoothCopter(x, "EHANG GHOST");
+                    return copter1;
+                }
+            }
+            catch (Exception ex)
+            {
+                string retMsg = "连接飞行器失败，返回信息为：" + ex.ToString();
+                MessageDialog diag = new MessageDialog(retMsg);
+                await diag.ShowAsync();
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 获取已配对的 VR 眼镜/G-BOX 列表。注意：由于 UWP 的限制，需要先在系统设置中配对，密码是 1234。
+        /// </summary>
+        /// <returns>已配对的 VR 眼镜/G-BOX 列表。</returns>
+        private static async Task<IEnumerable<PeerInformation>> FindBluetoothPeersAsync()
+        {
+
+
+            try
+            {
+                PeerFinder.Start();
+                PeerFinder.AlternateIdentities["Bluetooth:PAIRED"] = string.Empty;
+                var peers = (await PeerFinder.FindAllPeersAsync());//.Where(p => p.DisplayName.StartsWith("EHANG"));
+                return peers;
+            }
+            catch (Exception ex)
+            {
+                throw;  // 无蓝牙设备或者未开启蓝牙。
+            }
+
+
+        }
+
+        private static ICopter CreateBluetoothCopter(string hostName, string copterName)
+        {
+            var connection = new BluetoothConnection(hostName);
+            var copter = new EHCopter(connection, SynchronizationContext.Current)
+            {
+                Id = "Bluetooth_" + hostName,
+                Name = copterName
+            };
+
+            return copter;
+        }
+        #endregion
+
         /// <summary>
         /// Load the saved location data from roaming storage. 
         /// </summary>

@@ -76,7 +76,6 @@ THE SOFTWARE.
 
                 <StackPanel>
                     <TextBlock Text="{x:Bind Name, Mode=OneWay, TargetNullValue=''}" TextWrapping="Wrap"/>
-                    <TextBlock Text="{x:Bind Address, Mode=OneWay, TargetNullValue=''}" FontSize="9" TextWrapping="Wrap"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,4">
@@ -100,7 +99,7 @@ THE SOFTWARE.
                     maps:MapControl.NormalizedAnchorPoint="{x:Bind NormalizedAnchorPoint, Mode=OneWay}"/>
 
                 <!-- The custom map pin image is used for saved locations.  RightTapped="Image_RightTapped" -->
-                <Image Source="{x:Bind ImageSource, Mode=OneWay}" Width="38" Height="60" 
+                <Image Source="{x:Bind ImageSource, Mode=OneWay}" Width="68" Height="68" 
                     Visibility="{x:Bind IsCurrentLocation, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Reverse}"
                     maps:MapControl.Location="{x:Bind Geopoint, Mode=OneWay}" 
                     maps:MapControl.NormalizedAnchorPoint="{x:Bind NormalizedAnchorPoint, Mode=OneWay}"/>
@@ -155,7 +154,7 @@ THE SOFTWARE.
 
 
         <!-- TODO Replace the placeholder string below with your own Bing Maps key from https://www.bingmapsportal.com -->
-        <maps:MapControl x:Name="InputMap" IsDoubleTapEnabled="True" RightTapped="InputMap_RightTapped"  Grid.RowSpan="2" MapHolding="InputMap_MapHolding"
+        <maps:MapControl x:Name="InputMap"  IsDoubleTapEnabled="True" RightTapped="InputMap_RightTapped"  Grid.RowSpan="2" MapHolding="InputMap_MapHolding"
             MapServiceToken="gPWwQYVbKj3ksvXdKT4o~JBNY-UlSbfIAo6hrfgBSNw~AoHF1pLbkfZRvoc6Z0y3QuvheC0TCCYi_vd7kkaCHoK8s-bR3NJSpmnjx9L7DbTv" >
 
             <maps:MapItemsControl ItemTemplate="{StaticResource InputMapItemTemplate}"
@@ -200,7 +199,7 @@ THE SOFTWARE.
                  the map shown below the list. For more info, see App.xaml. -->
 
         <RelativePanel>
-            <ListView Visibility="Visible" x:Name="LocationsView" Grid.Row="1" Margin="10,10,0,0" Width="277" HorizontalAlignment="Left"
+            <ListView Visibility="Visible" x:Name="LocationsView" Grid.Row="1" Margin="10,10,0,0" Width="300" HorizontalAlignment="Left"
             Tapped="LocationsView_Tapped"
             SelectionMode="Single" 
             SelectedItem="{x:Bind SelectedLocation, Mode=TwoWay}"
@@ -208,13 +207,13 @@ THE SOFTWARE.
             ItemTemplate="{StaticResource LocationTemplate}" 
             ItemContainerStyle="{StaticResource LocationsViewItemStyle}" >
             </ListView>
-            <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}"  Margin="10,10,0,0" Width="277" HorizontalAlignment="left"  VerticalAlignment="top" RelativePanel.Below="LocationsView">
+            <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}"  Margin="10,10,0,0" Width="300" HorizontalAlignment="left"  VerticalAlignment="top" RelativePanel.Below="LocationsView">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-             
+
 
                 <!-- This flyout uses Binding instead of x:Bind because it relies on the code-behind setting the flyout's DataContext property.
                                  This way, the editor is bound to a temporary copy of the location being edited, which enables the user to cancel any changes. -->
@@ -253,8 +252,8 @@ THE SOFTWARE.
                         </Grid.Resources>
 
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="140" />
+                            <ColumnDefinition Width="160" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Vertical">
@@ -367,9 +366,9 @@ THE SOFTWARE.
                                 <TextBlock Text="{Binding State}" />
                             </StackPanel>
                         </StackPanel>
-                       
+
                     </Grid>
-                 </StackPanel>
+                </StackPanel>
             </Grid>
         </RelativePanel>
 
@@ -387,9 +386,9 @@ THE SOFTWARE.
                         <MenuFlyoutItem Text="断开连接" Click="MenuFlyoutItem_Disconnect_Click"/>
                     </MenuFlyoutSubItem>
                     <MenuFlyoutSubItem Text="航线">
-                        <MenuFlyoutItem Text="输入航点"/>
-                        <MenuFlyoutItem Text="导入航点"/>
-                        <MenuFlyoutItem Text="设置航线"/>
+                        <MenuFlyoutItem Text="读取航点" Click="MenuFlyoutItem_Input_Click"/>
+                        <MenuFlyoutItem Text="导入航点" Click="MenuFlyoutItem_Import_Click"/>
+                        <MenuFlyoutItem Text="设置航线" Click="MenuFlyoutItem_Set_Click"/>
                         <MenuFlyoutItem Text="返航路径" />
                     </MenuFlyoutSubItem>
 
@@ -400,30 +399,12 @@ THE SOFTWARE.
                 </MenuFlyout>
             </AppBarButton.Flyout>
         </AppBarButton>
-
-        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1">
-            <Image Name="CapturedImage" Source="assets\splash.png" Width="300" Height="200" Margin="0,0,5,5" AllowDrop="True" ></Image>
+<!--
+        <StackPanel HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Bottom" Width="360" Height="265">
+            <MediaElement x:Name="mediaElement" AreTransportControlsEnabled="True" Width="360" Height="245" AllowDrop="True" Margin="0,0,20,20"/>
         </StackPanel>
-
+-->
     </Grid>
 
-    <Page.BottomAppBar>
-        <CommandBar Visibility="Visible">
-            <AppBarButton x:Name="ListDisplayModeButton" 
-                Icon="ClosePane" 
-                Label="Hide locations list" 
-                ToolTipService.ToolTip="Hide locations list"
-                Click="ListDisplayModeButton_Click" />
-            <AppBarButton x:Name="AddCurrentLocationButton" 
-                Icon="Target" 
-                Label="Add current location" 
-                ToolTipService.ToolTip="Add current location to list"
-                Click="AddCurrentLocation_Click"/>
-            <AppBarButton x:Name="AddNewLocationButton" 
-                Icon="MapPin" 
-                Label="Add new location" 
-                ToolTipService.ToolTip="Add new, blank location to list"
-                Click="AddNewLocation_Click" />
-        </CommandBar>
-    </Page.BottomAppBar>
+
 </Page>
