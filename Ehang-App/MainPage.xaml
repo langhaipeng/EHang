@@ -76,8 +76,7 @@ THE SOFTWARE.
 
                 <StackPanel>
                     <TextBlock Text="{x:Bind Name, Mode=OneWay, TargetNullValue=''}" TextWrapping="Wrap"/>
-                    <TextBlock Text="{x:Bind Address, Mode=OneWay, TargetNullValue=''}" FontSize="9" TextWrapping="Wrap"/>
-                </StackPanel>
+                 </StackPanel>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,4">
                     <TextBlock Text="ID：CO-0001" Grid.Row="0" Grid.Column="1" FontSize="10" Margin="0,0,0,-2" HorizontalAlignment="Center"/>
@@ -200,7 +199,7 @@ THE SOFTWARE.
                  the map shown below the list. For more info, see App.xaml. -->
 
         <RelativePanel>
-            <ListView Visibility="Visible" x:Name="LocationsView" Grid.Row="1" Margin="10,10,0,0" Width="277" HorizontalAlignment="Left"
+            <ListView Visibility="Visible" x:Name="LocationsView" Grid.Row="1" Margin="10,10,0,0" Width="300" HorizontalAlignment="Left"
             Tapped="LocationsView_Tapped"
             SelectionMode="Single" 
             SelectedItem="{x:Bind SelectedLocation, Mode=TwoWay}"
@@ -208,7 +207,7 @@ THE SOFTWARE.
             ItemTemplate="{StaticResource LocationTemplate}" 
             ItemContainerStyle="{StaticResource LocationsViewItemStyle}" >
             </ListView>
-            <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}"  Margin="10,10,0,0" Width="277" HorizontalAlignment="left"  VerticalAlignment="top" RelativePanel.Below="LocationsView">
+            <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}"  Margin="10,10,0,0" Width="300" HorizontalAlignment="left"  VerticalAlignment="top" RelativePanel.Below="LocationsView">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
@@ -253,8 +252,8 @@ THE SOFTWARE.
                         </Grid.Resources>
 
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="140" />
+                            <ColumnDefinition Width="160" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Vertical">
@@ -387,9 +386,9 @@ THE SOFTWARE.
                         <MenuFlyoutItem Text="断开连接" Click="MenuFlyoutItem_Disconnect_Click"/>
                     </MenuFlyoutSubItem>
                     <MenuFlyoutSubItem Text="航线">
-                        <MenuFlyoutItem Text="输入航点"/>
-                        <MenuFlyoutItem Text="导入航点"/>
-                        <MenuFlyoutItem Text="设置航线"/>
+                        <MenuFlyoutItem Text="读取航点" Click="MenuFlyoutItem_Input_Click"/>
+                        <MenuFlyoutItem Text="导入航点" Click="MenuFlyoutItem_Import_Click"/>
+                        <MenuFlyoutItem Text="设置航线" Click="MenuFlyoutItem_Set_Click"/>
                         <MenuFlyoutItem Text="返航路径" />
                     </MenuFlyoutSubItem>
 
@@ -407,23 +406,5 @@ THE SOFTWARE.
 
     </Grid>
 
-    <Page.BottomAppBar>
-        <CommandBar Visibility="Visible">
-            <AppBarButton x:Name="ListDisplayModeButton" 
-                Icon="ClosePane" 
-                Label="Hide locations list" 
-                ToolTipService.ToolTip="Hide locations list"
-                Click="ListDisplayModeButton_Click" />
-            <AppBarButton x:Name="AddCurrentLocationButton" 
-                Icon="Target" 
-                Label="Add current location" 
-                ToolTipService.ToolTip="Add current location to list"
-                Click="AddCurrentLocation_Click"/>
-            <AppBarButton x:Name="AddNewLocationButton" 
-                Icon="MapPin" 
-                Label="Add new location" 
-                ToolTipService.ToolTip="Add new, blank location to list"
-                Click="AddNewLocation_Click" />
-        </CommandBar>
-    </Page.BottomAppBar>
+   
 </Page>

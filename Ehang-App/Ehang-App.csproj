@@ -111,12 +111,20 @@
     <None Include="Ehang-App_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\7.png" />
+    <Content Include="Assets\drone1.png" />
+    <Content Include="Assets\drone2.jpg" />
+    <Content Include="Assets\drone3.jpg" />
+    <Content Include="Assets\drone4.png" />
+    <Content Include="Assets\drone5.png" />
     <Content Include="Assets\logo-black.png" />
     <Content Include="Assets\mappin-yellow.png" />
     <Content Include="Assets\mappin.png" />
     <Content Include="Assets\splash.png" />
     <Content Include="Assets\splash.scale-100.png" />
     <Content Include="Assets\SplashScreen.scale-100.png" />
+    <Content Include="Assets\toy02.png" />
+    <Content Include="config\copters.xml" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -129,10 +137,6 @@
     <ProjectReference Include="..\LocationHelper\CopterHelper.csproj">
       <Project>{089d479e-9e0d-4296-9e04-12eca7549461}</Project>
       <Name>CopterHelper</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TrafficMonitor\TrafficMonitor.csproj">
-      <Project>{61e4db46-9145-4587-bcaf-ae3df9c62f7e}</Project>
-      <Name>TrafficMonitor</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +160,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

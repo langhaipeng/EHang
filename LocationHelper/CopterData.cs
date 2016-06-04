@@ -25,6 +25,9 @@
 using System;
 using System.Runtime.Serialization;
 using Windows.Devices.Geolocation;
+using System.Collections.Specialized;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using Windows.Foundation;
 using Windows.Services.Maps;
 using EHang.Copters;
@@ -50,17 +53,34 @@ namespace CopterHelper
             get { return this.name; }
             set { this.SetProperty(ref this.name, value); }
         }
-
-        private string address;
-        /// <summary>
-        /// Gets or sets the address of the location.
-        /// </summary>
-        public string Address
+        private string type;
+        public string Type
         {
-            get { return this.address; }
-            set { this.SetProperty(ref this.address, value); }
+            get
+            {
+                return type;
+            }
+
+            set
+            {
+                type = value;
+            }
         }
 
+        private string hostname;
+
+        public string Hostname
+        {
+            get
+            {
+                return hostname;
+            }
+
+            set
+            {
+                hostname = value;
+            }
+        }
         private BasicGeoposition position;
         /// <summary>
         /// Gets the geographic position of the location.
@@ -140,7 +160,7 @@ namespace CopterHelper
         /// <summary>
         /// Gets a path to an image to use as a map pin, reflecting the IsSelected property value. 
         /// </summary>
-        public string ImageSource => IsSelected ? "Assets/mappin-yellow.png" : "Assets/mappin.png"; 
+        public string ImageSource => IsSelected ? "Assets/7.png" : "Assets/toy02.png"; 
 
         private Point centerpoint = new Point(0.5, 0.5);
         private Point pinpoint = new Point(0.5, 0.9778);
@@ -152,37 +172,8 @@ namespace CopterHelper
 
         
      
-        private DateTimeOffset timestamp;
-        /// <summary>
-        /// Gets or sets a value that indicates when the travel info was last updated. 
-        /// </summary>
-        public DateTimeOffset Timestamp
-        {
-            get { return this.timestamp; }
-            set
-            {
-                this.SetProperty(ref this.timestamp, value);
-                this.OnPropertyChanged(nameof(FormattedTimeStamp));
-            }
-        }
+      
 
-        /// <summary>
-        /// Raises a change notification for the timestamp in order to update databound UI.   
-        /// </summary>
-        public void RefreshFormattedTimestamp() => this.OnPropertyChanged(nameof(FormattedTimeStamp));
-
-        /// <summary>
-        /// Gets a display-string representation of the freshness timestamp. 
-        /// </summary>
-        public string FormattedTimeStamp
-        {
-            get
-            {
-                double minutesAgo = this.Timestamp == DateTimeOffset.MinValue ? 0 :
-                    Math.Floor((DateTimeOffset.Now - this.Timestamp).TotalMinutes);
-                return $"{minutesAgo} minute{(minutesAgo == 1 ? "" : "s")} ago";
-            }
-        }
 
         private bool isMonitored;
         /// <summary>
@@ -208,38 +199,23 @@ namespace CopterHelper
             }
         }
 
-      
+        public List<IMission> Missions
+        {
+            get
+            {
+                return missions;
+            }
+
+            set
+            {
+                missions = value;
+            }
+        }
 
 
-
-        /*
-public ICopterManager CopterManager
-{
-   get
-   {
-       return copterManager;
-   }
-
-   set
-   {
-       copterManager = value;
-   }
-}
-
-public IEHMessenger Messager
-{
-   get
-   {
-       return messager;
-   }
-
-   set
-   {
-       messager = value;
-   }
-}
-*/
         private ICopter copter;
+
+        private List<IMission> missions=new List<IMission>();
 
 
        // private ICopterManager copterManager;
@@ -271,9 +247,9 @@ public IEHMessenger Messager
         public void Copy(CopterData location)
         {
             this.Name = location.Name;  
-            this.Address = location.Address;
+            this.DestmapIcon = location.DestmapIcon;
             this.Position = location.Position;
-            this.Timestamp = location.Timestamp;
+            this.DestmapLine = location.DestmapLine;
             this.copter = location.copter;
             this.IsMonitored = location.IsMonitored;
             
