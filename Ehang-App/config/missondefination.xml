@@ -1,0 +1,33 @@
+﻿<root>
+  <missiontype name="LAND" description="降落">
+  </missiontype>
+  <missiontype name="LAUNCH" description="返航">
+  </missiontype>
+  <missiontype name="FLYTO" description="飞往目标位置">
+    <Latitude>纬度</Latitude>
+    <Longitude>经度</Longitude>
+    <Altitude>高度</Altitude>
+    <param1>到达半径</param1>
+    <param2>停留时间</param2>
+    <channelid>通道ID</channelid>
+    <channelcommand>通道命令</channelcommand>
+  </missiontype>
+  <missiontype name="CIRCLETURNS" description="盘旋指定圈数">
+    <Latitude>纬度</Latitude>
+    <Longitude>经度</Longitude>
+    <Altitude>高度</Altitude>
+    <param1>到达半径</param1>
+    <param2>停留时间</param2>
+    <channelid>通道ID</channelid>
+    <channelcommand>通道命令</channelcommand>
+  </missiontype>
+  <missiontype name="CIRCLETIME" description="盘旋指定时长">
+    <Latitude>纬度</Latitude>
+    <Longitude>经度</Longitude>
+    <Altitude>高度</Altitude>
+    <param1>到达半径</param1>
+    <param2>停留时间</param2>
+    <channelid>通道ID</channelid>
+    <channelcommand>通道命令</channelcommand>
+  </missiontype>
+</root>

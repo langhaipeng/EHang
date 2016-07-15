@@ -99,13 +99,23 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AppSet.xaml.cs">
+      <DependentUpon>AppSet.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Common\BooleanToVisibilityConverter.cs" />
     <Compile Include="Common\Helpers.cs" />
     <Compile Include="Common\MessengerAdapter.cs" />
+    <Compile Include="DronesSet.xaml.cs">
+      <DependentUpon>DronesSet.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MissionViewModel.cs" />
     <Compile Include="MainViewModel.cs" />
+    <Compile Include="MissonPlan.xaml.cs">
+      <DependentUpon>MissonPlan.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -116,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\7.png" />
+    <Content Include="Assets\delete.png" />
     <Content Include="Assets\drone1.png" />
     <Content Include="Assets\drone2.jpg" />
     <Content Include="Assets\drone3.jpg" />
@@ -130,7 +141,9 @@
     <Content Include="Assets\Square150x150Logo.scale-100.png" />
     <Content Include="Assets\Square44x44Logo.scale-100.png" />
     <Content Include="Assets\toy02.png" />
+    <Content Include="config\ehangapp.xml" />
     <Content Include="config\copters.xml" />
+    <Content Include="config\missondefination.xml" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -161,7 +174,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Page Include="AppSet.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DronesSet.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MissonPlan.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

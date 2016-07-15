@@ -39,6 +39,9 @@ using EHang.Communication;
 using System.Threading;
 using Windows.UI.Popups;
 using Windows.Data.Xml.Dom;
+using MetroLog;
+using MetroLog.Targets;
+
 namespace CopterHelper
 {
     /// <summary>
@@ -47,6 +50,7 @@ namespace CopterHelper
     public static class CopterDataStore
     {
         private const string dataFileName = "EHangAppData.txt";
+       
 
         /// <summary>
         /// Gets a list of four sample locations randomply positioned around the user's current 
@@ -95,10 +99,17 @@ namespace CopterHelper
                             Longitude = getCoordinate(longitudeRange, center.Longitude)
                         };
                         dt.Copter = CreateFakeCopter(dt.Name, dt.Position.Latitude, dt.Position.Longitude);
+                        
                     }
                     else if (dt.Type == "bluetooth")
                     {
-                        dt.Copter = CreateBluetoothCopter(dt.Hostname, dt.Name);
+                        dt.Copter = await CreateBluetoothCopter(dt.Hostname, dt.Name);
+                        dt.Position = center;
+                    }
+                    else if (dt.Type == "udp")
+                    {
+                        dt.Copter = await CreateUDPCopter(dt.Hostname, dt.Name);
+                        //dt.Copter = CreateBluetoothCopter(dt.Hostname, dt.Name);
                         dt.Position = center;
                     }
                     locations.Add(dt);
@@ -110,6 +121,7 @@ namespace CopterHelper
             }
             catch (Exception e)
             {
+                LogManagerFactory.DefaultLogManager.GetLogger("CopterDataStore").Trace("GetSampleCopterDataAsync:", e);
                 throw;
             }
             return locations;
@@ -137,13 +149,21 @@ namespace CopterHelper
                 var peer = peers.FirstOrDefault();
                 var rfcommService = await RfcommDeviceService.FromIdAsync(service.Id);
 
-                //if (rfcommService != null)
+                if (rfcommService != null)
                 {
 
                     // 创建使用蓝牙连接的飞行器对象。
                     var x = rfcommService.ConnectionHostName.ToString();
-                    var copter1 = CreateBluetoothCopter(x, "EHANG GHOST");
+                    var copter1 = await CreateBluetoothCopter(x, "EHANG GHOST");
                     return copter1;
+                }
+                else
+                {
+                    string retMsg = "连接飞行器失败，未找到对应蓝牙设备。";
+                    MessageDialog diag = new MessageDialog(retMsg);
+                    await diag.ShowAsync();
+                    return null;
+
                 }
             }
             catch (Exception ex)
@@ -178,15 +198,47 @@ namespace CopterHelper
 
         }
 
-        private static ICopter CreateBluetoothCopter(string hostName, string copterName)
+        private static async Task<ICopter> CreateUDPCopter(string hostName, string copterName)
         {
-            var connection = new BluetoothConnection(hostName);
-            var copter = new EHCopter(connection, SynchronizationContext.Current)
+            ICopter copter = null;
+            try
             {
-                Id = "Bluetooth_" + hostName,
+                var connection = new TcpConnection(hostName);
+             copter = new EHCopter(connection, SynchronizationContext.Current)
+            {
+                Id = "UDP_" + hostName,
                 Name = copterName
-            };
 
+            };
+            }
+            catch (Exception ex)
+            {
+                string retMsg = "使用UDP方式连接飞行器失败，返回信息为：" + ex.ToString();
+                MessageDialog diag = new MessageDialog(retMsg);
+                await diag.ShowAsync();
+
+            }
+            return copter;
+        }
+
+        private static async Task<ICopter> CreateBluetoothCopter(string hostName, string copterName)
+        {
+            ICopter copter = null;
+            try
+            {
+                var connection = new BluetoothConnection(hostName);
+                copter = new EHCopter(connection, SynchronizationContext.Current)
+                {
+                    Id = "Bluetooth_" + hostName,
+                    Name = copterName
+                };
+            }catch(Exception ex)
+            {
+                string retMsg = "使用蓝牙方式连接飞行器失败，返回信息为：" + ex.ToString();
+                MessageDialog diag = new MessageDialog(retMsg);
+                await diag.ShowAsync();
+
+            }
             return copter;
         }
         #endregion

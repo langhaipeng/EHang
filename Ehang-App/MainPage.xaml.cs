@@ -1,27 +1,4 @@
-﻿//  ---------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-//  The MIT License (MIT)
-// 
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
-// 
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-// 
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
-//  ---------------------------------------------------------------------------------
-
+﻿
 
 using System;
 using System.Collections.Generic;
@@ -64,6 +41,9 @@ using Windows.Storage.Search;
 using Windows.UI.Xaml.Media.Imaging;
 using EHang.Geography;
 using Windows.UI;
+using MetroLog;
+using MetroLog.Targets;
+
 
 namespace EHangApp
 {
@@ -76,6 +56,34 @@ namespace EHangApp
         private IEnumerable<ICopterManager> _copterManagers = ServiceLocator.Current.GetAllInstances<ICopterManager>();
         private IEnumerable<IMessenger> _messengers = ServiceLocator.Current.GetAllInstances<IMessenger>();
         private bool missionMode=false;
+
+        ILogger log = LogManagerFactory.DefaultLogManager.GetLogger<MainPage>();
+
+
+        #region navigation button
+        private async void MainPageButton_Click(object sender, RoutedEventArgs e)
+        {
+
+            Frame.Navigate(typeof(MainPage));
+
+        }
+
+        private void DroneSetButton_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(DronesSet));
+        }
+
+        private void FlyPlanButton_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(MissonPlan));
+        }
+
+        private void SettingButton_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(AppSet));
+        }
+        #endregion
+
         #region Location data
 
         /// <summary>
@@ -126,40 +134,50 @@ namespace EHangApp
         /// Initializes a new instance of the class and sets up the association
         /// between the Locations and MappedLocations collections. 
         /// </summary>
-        public MainPage()
+        public  MainPage()
         {
             this.InitializeComponent();
 
-            this.Locations = new ObservableCollection<CopterData>();
-            this.MappedLocations = new ObservableCollection<CopterData>(this.Locations);
 
-            // MappedLocations is a superset of Locations, so any changes in Locations
-            // need to be reflected in MappedLocations. 
-            this.Locations.CollectionChanged += (s, e) =>
+            try
             {
-                if (e.NewItems != null) foreach (CopterData item in e.NewItems) this.MappedLocations.Add(item);
-                if (e.OldItems != null) foreach (CopterData item in e.OldItems) this.MappedLocations.Remove(item);
-            };
 
-            foreach (var _messenger in _messengers)
-            {
-                _messenger.Register<CopterLocationChangedMessage>(this, m =>
+                this.Locations = new ObservableCollection<CopterData>();
+                this.MappedLocations = new ObservableCollection<CopterData>(this.Locations);
+
+                // MappedLocations is a superset of Locations, so any changes in Locations
+                // need to be reflected in MappedLocations. 
+                this.Locations.CollectionChanged += (s, e) =>
                 {
-                    AddOrMoveCopter(m.Copter);
-                });
+                    if (e.NewItems != null) foreach (CopterData item in e.NewItems) this.MappedLocations.Add(item);
+                    if (e.OldItems != null) foreach (CopterData item in e.OldItems) this.MappedLocations.Remove(item);
+                };
+
+                foreach (var _messenger in _messengers)
+                {
+                    _messenger.Register<CopterLocationChangedMessage>(this, m =>
+                    {
+                        AddOrMoveCopter(m.Copter);
+                    });
+                }
+                DataContext = new MainViewModel();
+                //if (this.InputMap.Is3DSupported)
+                {
+
+                    this.InputMap.Style = MapStyle.Aerial3DWithRoads;
+
+                }
+                //this.BottomAppBar.IsSticky = true;
+                System.Uri manifestUri = new Uri("http://amssamples.streaming.mediaservices.windows.net/49b57c87-f5f3-48b3-ba22-c55cfdffa9cb/Sintel.ism/manifest(format=m3u8-aapl)");
+                //  mediaElement.Source = manifestUri;
+                //  mediaElement.Stop();
             }
-            DataContext = new MainViewModel();
-            if (this.InputMap.Is3DSupported)
+            catch (Exception ex)
             {
-
-                this.InputMap.Style = MapStyle.Aerial3DWithRoads;
-
+                log.Trace("MainPage initial function:", ex);
+                MessageDialog diag = new MessageDialog("初始化页面失败，请查看日志。");
+                diag.ShowAsync();
             }
-
-            System.Uri manifestUri = new Uri("http://amssamples.streaming.mediaservices.windows.net/49b57c87-f5f3-48b3-ba22-c55cfdffa9cb/Sintel.ism/manifest(format=m3u8-aapl)");
-            //mediaElement.Source = manifestUri;
-            //mediaElement.
-
 
         }
 
@@ -400,7 +418,14 @@ namespace EHangApp
             }
             else
             {
-                var  pointStr = pos.Position.Latitude + "-" + pos.Position.Longitude;
+
+                string retMsg = "飞机定位为：" + _copterManager.Copter.Latitude+"-"+_copterManager.Copter.Longitude+"-"+_copterManager.Copter.Altitude + ";\n";
+                retMsg += "选择的点为："+pos.Position.Latitude+"-"+pos.Position.Longitude+"-"+pos.Position.Altitude;
+                MessageDialog diag1 = new MessageDialog(retMsg);
+                await diag1.ShowAsync();
+
+                var inst = GeographyUtils.CalcDistance(pos.Position.Latitude, pos.Position.Longitude, pos.Position.Altitude, _copterManager.Copter.Latitude, _copterManager.Copter.Longitude, _copterManager.Copter.Altitude);
+                var  pointStr = pos.Position.Latitude + "-" + pos.Position.Longitude+"-距离："+ inst+"米";
                 MessageDialog diag = new MessageDialog("要把"+pointStr+"加入到航点列表吗？");
                 diag.Commands.Add(new UICommand("确定", cmd => { }, commandId: 0));
                 diag.Commands.Add(new UICommand("取消", cmd => { }, commandId: 1));
@@ -409,7 +434,7 @@ namespace EHangApp
                 IUICommand cmd1 = await diag.ShowAsync();
                 if (cmd1.Label == "确定")
                 {
-                    (this.LocationsView.SelectedItem as CopterData).Missions.Add(Mission.CreateWaypointMission(pos.Position.Latitude, pos.Position.Longitude, _copterManager.Copter.Altitude));
+                    (this.LocationsView.SelectedItem as CopterData).Missions.Add(Mission.CreateWaypointMission(pos.Position.Latitude, pos.Position.Longitude,20));
                 }
             }
         }
@@ -470,40 +495,20 @@ namespace EHangApp
         /// </summary>
         /// <param name="isIncrement">true if a location was just flagged; 
         /// false if a location was just unflagged.</param>
-       
+
 
         #endregion Location commands: per-location buttons
 
-   
+
         #region Map selection mode for repositioning a location
 
-       
+
 
 
 
         #endregion Map selection mode for repositioning a location
 
-        private async void MainPageButton_Click(object sender, RoutedEventArgs e)
-        {
-
-           
-
-        }
-
-        private void AboutButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void HelpButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void SettingButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
+     
 
         private async void Image_RightTapped(object sender, RightTappedRoutedEventArgs e)
         {
@@ -666,7 +671,7 @@ namespace EHangApp
         private async void MenuFlyoutItem_TakeOff_Click(object sender, RoutedEventArgs e)
         {
             //await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).UnlockAsync();
-           await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).TakeOffAsync();
+           await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).TakeOffAsync(20);
         }
 
         private async void MenuFlyoutItem_UnLock_Click(object sender, RoutedEventArgs e)
@@ -727,7 +732,7 @@ namespace EHangApp
             {
                 if (mission.Command.ToString().ToUpper().Equals("WAYPOINT"))
                 {
-                    ret += mission.Sequence + "-" + mission.Command.ToString() + "-" + mission.Latitude + "-" + mission.Longitude+"\n";
+                    ret += mission.Sequence + "-" + mission.Command.ToString() + "-" + mission.Latitude + "-" + mission.Altitude  + "-" + mission.Longitude+"\n";
                 }
                 else
                 {
@@ -753,8 +758,8 @@ namespace EHangApp
             missionMode = false;
 
             var missions = (this.LocationsView.SelectedItem as CopterData).Missions;
-           // missions.Add(Mission.CreateReturnToLaunchMission());
-           // missions.Add(Mission.CreateLandMission());
+            missions.Add(Mission.CreateReturnToLaunchMission());
+           missions.Add(Mission.CreateLandMission());
             string ret = string.Empty;
             foreach (IMission mission in missions)
             {
@@ -770,19 +775,45 @@ namespace EHangApp
             MessageDialog diag = new MessageDialog("航点数据："+ret+"\n.是否导入航点数据？");
             diag.Commands.Add(new UICommand("确定", cmd => { }, commandId: 0));
             diag.Commands.Add(new UICommand("取消", cmd => { }, commandId: 1));
-
+            var copter1 = ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).Copter as EHCopter;
             bool isSuccessful=false;
             IUICommand cmd1 = await diag.ShowAsync();
             if (cmd1.Label == "确定")
             {
-               isSuccessful= await (ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).Copter as EHCopter).WriteMissionListAsync(missions,5000);
-            }
-            if (!isSuccessful)
-            {
-                MessageDialog diag1 = new MessageDialog("写入航线数据失败。");
-                await diag1.ShowAsync();
+                int i = 0;
+                while ((!isSuccessful)&&(i<10))
+                {
+                    isSuccessful = await (ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).Copter as EHCopter).WriteMissionListAsync(missions, 5000);
+                    i++;
+                }
+                 await Task.Delay(5000);
 
+                if (!isSuccessful)
+                {
+                    MessageDialog diag1 = new MessageDialog("写入航线数据失败。" + copter1.StatusText);
+                    await diag1.ShowAsync();
+
+                }
+                else
+                {
+                    string retMsg =  "-导入成功。";
+                    MessageDialog diag1 = new MessageDialog(retMsg);
+                    await diag1.ShowAsync();
+                }
+            }
+            else
+            {
+               
             }
         }
+
+        private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+        {
+            await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).TakeOffAsync();
+
+        }
     }
+
+
 }
+

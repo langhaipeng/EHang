@@ -59,6 +59,7 @@ THE SOFTWARE.
             </Setter>
         </Style>
 
+      
         <!-- This DataTemplate provides the UI for the location data that appears in the list. This UI appears 
              where the ContentPresenter is shown in the ListViewItem control template above. This DataTemplate 
              also declares the editor as an attached flyout, which appears near the item being edited. -->
@@ -66,11 +67,12 @@ THE SOFTWARE.
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
+                    <ColumnDefinition/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
-                    <RowDefinition/>
+                    <RowDefinition />
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -78,11 +80,13 @@ THE SOFTWARE.
                     <TextBlock Text="{x:Bind Name, Mode=OneWay, TargetNullValue=''}" TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,4">
-                    <TextBlock Text="ID：CO-0001" Grid.Row="0" Grid.Column="1" FontSize="10" Margin="0,0,0,-2" HorizontalAlignment="Center"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="15,0,0,4">
+                    <TextBlock Text="ID:" Grid.Column="1" ></TextBlock>
                 </StackPanel>
 
-
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="15,0,0,4">
+                    <TextBlock Text="{x:Bind Hostname, Mode=OneWay, TargetNullValue=''}" Grid.Column="2" />
+                </StackPanel>
 
 
             </Grid>
@@ -108,9 +112,10 @@ THE SOFTWARE.
         </DataTemplate>
 
     </Page.Resources>
+
     <Page.TopAppBar>
 
-        <AppBar  IsOpen="True"  >
+        <AppBar  IsOpen="True" IsSticky="True">
             <Grid Margin="1,1,1,1"  >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -120,291 +125,363 @@ THE SOFTWARE.
                 </Grid.ColumnDefinitions>
 
                 <AppBarButton x:Name="MainPageButton" 
-                Label="主页"  Grid.Column="0"
+                Label="飞行控制"  Grid.Column="0"
                 Icon="Home" 
-                ToolTipService.ToolTip="返回主页"
+                ToolTipService.ToolTip="飞行控制"
                 Click="MainPageButton_Click" />
-                <AppBarButton x:Name="SettingButton" 
-                Icon="Setting" 
-                Label="设置" Grid.Column="1"
-                ToolTipService.ToolTip="设置"
-                Click="SettingButton_Click" />
-                <AppBarButton x:Name="HelpButton" 
-                Icon="Help" 
-                Label="帮助" Grid.Column="2"
-                ToolTipService.ToolTip="帮助"
-                Click="HelpButton_Click" />
+                <AppBarButton x:Name="FlyPlanButton" 
+                Label="飞行计划" Grid.Column="1"
+                ToolTipService.ToolTip="飞行计划"
+                Click="FlyPlanButton_Click" Icon="List" />
                 <AppBarButton x:Name="AboutButton" 
                 Icon="SetTile" 
-                Label="关于" Grid.Column="3"
-                ToolTipService.ToolTip="关于"
-                Click="AboutButton_Click" />
+                Label="飞行器设置" Grid.Column="2"
+                ToolTipService.ToolTip="飞行器设置"
+                Click="DroneSetButton_Click" /> <AppBarButton x:Name="SettingButton" 
+                Icon="Setting" 
+                Label="软件设置" Grid.Column="3"
+                ToolTipService.ToolTip="软件设置"
+                Click="SettingButton_Click" />
+               
             </Grid>
         </AppBar>
     </Page.TopAppBar>
+    <Page.Content>  
+ 
+    <Grid  Background="{ThemeResource ContentDialogBackgroundThemeBrush}" Padding="5,40,5,5" VerticalAlignment="Stretch" Margin="0" >
 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="280"/>
 
-    <Grid>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <!-- TODO Replace the placeholder string below with your own Bing Maps key from https://www.bingmapsportal.com -->
+            <StackPanel Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1"  Margin="2" Background="{ThemeResource SystemControlForegroundAltHighBrush}" BorderBrush="{ThemeResource HyperlinkPressedForegroundThemeBrush}" >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="500"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" >
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+                        <Grid Background="{ThemeResource SystemControlHighlightListAccentLowBrush}" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Image  Width="30" Height="30" Grid.Column="0" Source="Assets/drone3.jpg"  />
+                            <TextBlock Name="mapTitle"  Text="地图" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="{ThemeResource SystemChromeWhiteColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                    <maps:MapControl x:Name="InputMap" Grid.Row="1" IsDoubleTapEnabled="True" RightTapped="InputMap_RightTapped"   MapHolding="InputMap_MapHolding"
+            MapServiceToken="gPWwQYVbKj3ksvXdKT4o~JBNY-UlSbfIAo6hrfgBSNw~AoHF1pLbkfZRvoc6Z0y3QuvheC0TCCYi_vd7kkaCHoK8s-bR3NJSpmnjx9L7DbTv" Margin="2" UseLayoutRounding="True" >
 
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
-
-        <!-- TODO Replace the placeholder string below with your own Bing Maps key from https://www.bingmapsportal.com -->
-        <maps:MapControl x:Name="InputMap"  IsDoubleTapEnabled="True" RightTapped="InputMap_RightTapped"  Grid.RowSpan="2" MapHolding="InputMap_MapHolding"
-            MapServiceToken="gPWwQYVbKj3ksvXdKT4o~JBNY-UlSbfIAo6hrfgBSNw~AoHF1pLbkfZRvoc6Z0y3QuvheC0TCCYi_vd7kkaCHoK8s-bR3NJSpmnjx9L7DbTv" >
-
-            <maps:MapItemsControl ItemTemplate="{StaticResource InputMapItemTemplate}"
+                        <maps:MapItemsControl ItemTemplate="{StaticResource InputMapItemTemplate}"
                 ItemsSource="{x:Bind MappedLocations}" ToolTipService.ToolTip=""/>
-        </maps:MapControl>
+                    </maps:MapControl>
+                </Grid>
+            </StackPanel>
+            <StackPanel>
 
-        <StackPanel>
-
-            <Border x:Name="LocationDisabledMessage" Background="Red" VerticalAlignment="Top" 
+                <Border x:Name="LocationDisabledMessage" Background="Red" VerticalAlignment="Top" 
                 Visibility="Collapsed">
-                <TextBlock Foreground="White" TextWrapping="Wrap" Margin="10">
+                    <TextBlock Foreground="White" TextWrapping="Wrap" Margin="10">
                     <Run Text="Location data is unavailable. Check your network connection or go to " />
                     <Hyperlink NavigateUri="ms-settings:privacy-location" Foreground="White">
                         <Run Text="Settings > Privacy > Location" />
                     </Hyperlink>
                     <Run Text=" to check your permissions."/>
-                </TextBlock>
-            </Border>
+                    </TextBlock>
+                </Border>
 
-            <Border x:Name="MapServicesDisabledMessage" Background="Red" VerticalAlignment="Top" 
+                <Border x:Name="MapServicesDisabledMessage" Background="Red" VerticalAlignment="Top" 
                 Visibility="Collapsed">
-                <TextBlock Foreground="White" TextWrapping="Wrap" Margin="10">
+                    <TextBlock Foreground="White" TextWrapping="Wrap" Margin="10">
                     <Run Text="Route and address data is unavailable. Check your network connection."/>
                     <Run FontWeight="Bold" Text="[Developers: did you add a Bing Maps key for the ServiceToken properties?]"/>
-                </TextBlock>
-            </Border>
+                    </TextBlock>
+                </Border>
 
-            <Border x:Name="MapSelectionModeMessage" Background="Yellow" VerticalAlignment="Top" 
+                <Border x:Name="MapSelectionModeMessage" Background="Yellow" VerticalAlignment="Top" 
                 Visibility="Collapsed">
-                <TextBlock Foreground="SteelBlue" TextWrapping="Wrap" Margin="10" 
+                    <TextBlock Foreground="SteelBlue" TextWrapping="Wrap" Margin="10" 
                     Text="Tap the map to reposition the selected location, or tap here to cancel the change." 
                     />
-            </Border>
+                </Border>
 
-        </StackPanel>
+            </StackPanel>
 
-        <!-- This ListView is customized using three external resources: 
-               * The LocationsViewItemStyle declares the app-bar buttons at the bottom of an item when it is selected.
-               * The LocationTemplate declares the UI for the location data that appears in each list item.
-               * The ListView itself implicitly uses an altered version of the default ListView control style.
-                 This style is declared in the App.xaml file, and enables the user to manipulate the area of
-                 the map shown below the list. For more info, see App.xaml. -->
 
-        <RelativePanel>
-            <ListView Visibility="Visible" x:Name="LocationsView" Grid.Row="1" Margin="10,10,0,0" Width="300" HorizontalAlignment="Left"
+
+            <StackPanel Grid.Row="0" Grid.Column="0"  Margin="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="500"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" >
+
+                        <Grid Background="{ThemeResource SystemControlHighlightListAccentLowBrush}" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Image  Width="30" Height="30" Grid.Column="0" Source="Assets/drone3.jpg"  />
+                            <TextBlock Name="copterTitle"  Text="飞行器" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="{ThemeResource SystemChromeWhiteColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                    <ListView Visibility="Visible" x:Name="LocationsView" Grid.Row="1"  Margin="10,10,0,0"  HorizontalAlignment="Left"
             Tapped="LocationsView_Tapped"
             SelectionMode="Single" 
             SelectedItem="{x:Bind SelectedLocation, Mode=TwoWay}"
             ItemsSource="{x:Bind Locations}" 
             ItemTemplate="{StaticResource LocationTemplate}" 
             ItemContainerStyle="{StaticResource LocationsViewItemStyle}" >
-            </ListView>
-            <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}"  Margin="10,10,0,0" Width="300" HorizontalAlignment="left"  VerticalAlignment="top" RelativePanel.Below="LocationsView">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
+                    </ListView>
+                </Grid>
+            </StackPanel>
+            <StackPanel Grid.Row="0" Grid.Column="1"  Margin="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="500"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" >
+
+                        <Grid Background="{ThemeResource SystemControlHighlightListAccentLowBrush}" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Image  Width="30" Height="30" Grid.Column="0" Source="Assets/drone3.jpg"  />
+                            <TextBlock Name="TaskTitle"  Text="飞行任务" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="{ThemeResource SystemChromeWhiteColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel  Grid.Row="1">
+                        <TextBlock Text="任务挂载参数:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
+                        <ListView x:Name="TaskParams" >
+                            <ListViewItem>挂载参数A</ListViewItem>
+                            <ListViewItem>挂载参数B</ListViewItem>
+                        </ListView>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Grid.Row="0" Grid.Column="2"  Margin="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="500"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" >
+
+                        <Grid Background="{ThemeResource SystemControlHighlightListAccentLowBrush}" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Image  Width="30" Height="30" Grid.Column="0" Source="Assets/drone3.jpg"  />
+                            <TextBlock Name="videoTitle"  Text="图传" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="{ThemeResource SystemChromeWhiteColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1">
+                        <!--
+                        <MediaElement x:Name="mediaElement" AreTransportControlsEnabled="True"  AllowDrop="True" Margin="2" Height="410" Width="400"/>
+                        -->
+                        <Image Source="Assets/splash.png" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"></Image>
+                    </StackPanel>
+
+                </Grid>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="0"  Margin="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="500"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" >
+
+                        <Grid Background="{ThemeResource SystemControlHighlightListAccentLowBrush}" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Image  Width="30" Height="30" Grid.Column="0" Source="Assets/drone3.jpg"  />
+                            <TextBlock Name="ParameterTitle"  Text="飞行数据" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="{ThemeResource SystemChromeWhiteColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
 
 
-                <!-- This flyout uses Binding instead of x:Bind because it relies on the code-behind setting the flyout's DataContext property.
+                    <!-- This flyout uses Binding instead of x:Bind because it relies on the code-behind setting the flyout's DataContext property.
                                  This way, the editor is bound to a temporary copy of the location being edited, which enables the user to cancel any changes. -->
-                <StackPanel  Grid.Row="0">
-                    <TextBlock Text="任务挂载参数:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                    <ListView x:Name="TaskParams" >
-                        <ListViewItem>挂载参数A</ListViewItem>
-                        <ListViewItem>挂载参数B</ListViewItem>
-                    </ListView>
-                </StackPanel>
-                <StackPanel  Grid.Row="1">
-                    <TextBlock Text="任务挂载功能键:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                    <ListView x:Name="TaskFuncs" >
-                        <ListViewItem>自定义按键</ListViewItem>
-                        <ListViewItem>滑杆</ListViewItem>
-                    </ListView>
-                </StackPanel>
-                <StackPanel  Grid.Row="2">
-                    <TextBlock Text="飞行状态信息:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                    <Grid Name="copterINfo">
-                        <Grid.Resources>
-                            <Style x:Key="CopterInfo_ComboBox"
+
+
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="10,20,0,0">
+                        <Grid Name="copterINfo">
+                            <Grid.Resources>
+                                <Style x:Key="CopterInfo_ComboBox"
                    TargetType="ComboBox">
-                                <Setter Property="MinWidth"
+                                    <Setter Property="MinWidth"
                         Value="120" />
-                                <Setter Property="VerticalAlignment"
+                                    <Setter Property="VerticalAlignment"
                         Value="Center" />
-                            </Style>
-                            <Style x:Key="CopterInfo_StackPanel"
+                                </Style>
+                                <Style x:Key="CopterInfo_StackPanel"
                    TargetType="StackPanel">
-                                <Setter Property="Orientation"
+                                    <Setter Property="Orientation"
                         Value="Horizontal" />
-                                <Setter Property="Margin"
-                        Value="0,2" />
-                            </Style>
-                        </Grid.Resources>
+                                    <Setter Property="Margin"
+                        Value="0,5" />
+                                    
+                                </Style>
+                            </Grid.Resources>
 
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140" />
-                            <ColumnDefinition Width="160" />
-                        </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="160" />
+                            </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Vertical">
-                            <StackPanel.Resources>
-                                <Style TargetType="ComboBox"
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel.Resources>
+                                    <Style TargetType="ComboBox"
                        BasedOn="{StaticResource CopterInfo_ComboBox}" />
-                                <Style TargetType="StackPanel"
+                                    <Style TargetType="StackPanel"
                        BasedOn="{StaticResource CopterInfo_StackPanel}" />
-                            </StackPanel.Resources>
+                                </StackPanel.Resources>
+                                <StackPanel>
+                                    <TextBlock Text="当前模式:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="24" FontWeight="Bold"/>
+                                    <TextBlock Text=" " FontSize="18"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="心跳数：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=HeartbeatCount}" FontSize="18"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="已连接：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=IsConnected}" FontSize="18"/>
+                                </StackPanel>
+                               
+                                <StackPanel>
+                                    <TextBlock Text="卫星数：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=SatCount}" FontSize="18"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="高度：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Altitude}" FontSize="18"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="距离：" FontSize="18" />
+                                    <TextBlock Text="{Binding FlightDistance2D}" FontSize="18"/>
+                                </StackPanel>
+                            </StackPanel>
 
-                            <StackPanel>
-                                <TextBlock Text="ID：" />
-                                <TextBlock Text="{Binding Path=Id}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="已连接：" />
-                                <TextBlock Text="{Binding Path=IsConnected}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="已解锁：" />
-                                <TextBlock Text="{Binding Path=IsUnlocked}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="心跳数：" />
-                                <TextBlock Text="{Binding Path=HeartbeatCount}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="卫星数：" />
-                                <TextBlock Text="{Binding Path=SatCount}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="Heading：" />
-                                <TextBlock Text="{Binding Path=Heading}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="Yaw：" />
-                                <TextBlock Text="{Binding Path=Yaw}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="纬度：" />
-                                <TextBlock Text="{Binding Path=Latitude}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="经度：" />
-                                <TextBlock Text="{Binding Path=Longitude}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="高度：" />
-                                <TextBlock Text="{Binding Altitude}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="距离：" />
-                                <TextBlock Text="{Binding FlightDistance2D}" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="1"
+                            <StackPanel Grid.Row="1"
                     Grid.Column="1"
                     Orientation="Vertical">
-                            <StackPanel.Resources>
-                                <Style TargetType="ComboBox"
+                                <StackPanel.Resources>
+                                    <Style TargetType="ComboBox"
                        BasedOn="{StaticResource CopterInfo_ComboBox}" />
-                                <Style TargetType="StackPanel"
+                                    <Style TargetType="StackPanel"
                        BasedOn="{StaticResource CopterInfo_StackPanel}" />
-                            </StackPanel.Resources>
+                                </StackPanel.Resources>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding State}" FontSize="24" FontWeight="Bold"/>
+                             
+                                    <TextBlock Text=" " FontSize="18"/>
 
-                            <StackPanel>
-                                <TextBlock Text="电压：" />
-                                <TextBlock Text="{Binding Path=Voltage}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="剩余电量：" />
-                                <TextBlock Text="{Binding Path=BatteryPer}" />
-                                <TextBlock Text="%" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="通道1：" />
-                                <TextBlock Text="{Binding Channel1}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="通道2：" />
-                                <TextBlock Text="{Binding Channel2}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="通道3：" />
-                                <TextBlock Text="{Binding Channel3}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="通道4：" />
-                                <TextBlock Text="{Binding Channel4}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="HDOP：" />
-                                <TextBlock Text="{Binding GpsHdop}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="Fix type：" />
-                                <TextBlock Text="{Binding GpsFixType}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="GPS 是否精确：" />
-                                <TextBlock Text="{Binding IsGpsAccurate}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="地速：" />
-                                <TextBlock Text="{Binding GroundSpeed}" />
-                            </StackPanel>
-                            <StackPanel>
-                                <TextBlock Text="状态：" />
-                                <TextBlock Text="{Binding State}" />
-                            </StackPanel>
-                        </StackPanel>
+                                </StackPanel>
+ 
+                                <StackPanel>
+                                    <TextBlock Text="电压：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=Voltage}" FontSize="18"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="剩余电量：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=BatteryPer}" FontSize="18"/>
+                                    <TextBlock Text="%" />
+                                </StackPanel>
 
-                    </Grid>
-                </StackPanel>
-            </Grid>
-        </RelativePanel>
+                                <StackPanel>
+                                    <TextBlock Text="纬度：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=Latitude}" FontSize="18"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="经度：" FontSize="18"/>
+                                    <TextBlock Text="{Binding Path=Longitude}" FontSize="18"/>
+                                </StackPanel>
+                            
+                            </StackPanel>
 
-        <AppBarButton Label="操作菜单" Icon="Repair" HorizontalAlignment="Right" Background="SteelBlue" Padding="0" Margin="0,50,5,0" >
-            <AppBarButton.Flyout>
-                <MenuFlyout>
-                    <MenuFlyoutSubItem Text="飞行">
-                        <MenuFlyoutItem Text="连接" Click="MenuFlyoutItem_Connect_Click"/>
-                        <MenuFlyoutItem Text="解锁" Click="MenuFlyoutItem_UnLock_Click"/>
-                        <MenuFlyoutItem Text="锁定" Click="MenuFlyoutItem_Lock_Click"/>
-                        <MenuFlyoutItem Text="起飞" Click="MenuFlyoutItem_TakeOff_Click"/>
-                        <MenuFlyoutItem Text="悬停" Click="MenuFlyoutItem_Hover_Click"/>
-                        <MenuFlyoutItem Text="返航" Click="MenuFlyoutItem_Return_Click"/>
-                        <MenuFlyoutItem Text="降落" Click="MenuFlyoutItem_Landing_Click"/>
-                        <MenuFlyoutItem Text="断开连接" Click="MenuFlyoutItem_Disconnect_Click"/>
-                    </MenuFlyoutSubItem>
-                    <MenuFlyoutSubItem Text="航线">
-                        <MenuFlyoutItem Text="读取航点" Click="MenuFlyoutItem_Input_Click"/>
-                        <MenuFlyoutItem Text="导入航点" Click="MenuFlyoutItem_Import_Click"/>
-                        <MenuFlyoutItem Text="设置航线" Click="MenuFlyoutItem_Set_Click"/>
-                        <MenuFlyoutItem Text="返航路径" />
-                    </MenuFlyoutSubItem>
+                        </Grid>
+                    </StackPanel>
 
-                    <MenuFlyoutSubItem Text="手动">
-                        <MenuFlyoutItem Text="摇杆"/>
-                    </MenuFlyoutSubItem>
+                </Grid>
+            </StackPanel>
+            <AppBarButton Visibility="Visible" Label="操作菜单" Icon="Repair" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Right" Background="SteelBlue" Padding="0" Margin="0,50,5,0" >
+                <AppBarButton.Flyout>
+                    <MenuFlyout>
+                        <MenuFlyoutSubItem Text="飞行">
+                            <MenuFlyoutItem Text="连接" Click="MenuFlyoutItem_Connect_Click"/>
+                            <MenuFlyoutItem Text="解锁" Click="MenuFlyoutItem_UnLock_Click"/>
+                            <MenuFlyoutItem Text="锁定" Click="MenuFlyoutItem_Lock_Click"/>
+                            <MenuFlyoutItem Text="起飞" Click="MenuFlyoutItem_TakeOff_Click"/>
+                            <MenuFlyoutItem Text="悬停" Click="MenuFlyoutItem_Hover_Click"/>
+                            <MenuFlyoutItem Text="返航" Click="MenuFlyoutItem_Return_Click"/>
+                            <MenuFlyoutItem Text="降落" Click="MenuFlyoutItem_Landing_Click"/>
+                            <MenuFlyoutItem Text="断开连接" Click="MenuFlyoutItem_Disconnect_Click"/>
+                        </MenuFlyoutSubItem>
+                        <MenuFlyoutSubItem Text="航线">
+                            <MenuFlyoutItem Text="读取航点" Click="MenuFlyoutItem_Input_Click"/>
+                            <MenuFlyoutItem Text="导入航点" Click="MenuFlyoutItem_Import_Click"/>
+                            <MenuFlyoutItem Text="设置航线" Click="MenuFlyoutItem_Set_Click"/>
+                            <MenuFlyoutItem Text="按航点飞行" Click="MenuFlyoutItem_Click" />
+                        </MenuFlyoutSubItem>
 
-                </MenuFlyout>
-            </AppBarButton.Flyout>
-        </AppBarButton>
-<!--
-        <StackPanel HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Bottom" Width="360" Height="265">
-            <MediaElement x:Name="mediaElement" AreTransportControlsEnabled="True" Width="360" Height="245" AllowDrop="True" Margin="0,0,20,20"/>
-        </StackPanel>
+                        <MenuFlyoutSubItem Text="手动">
+                            <MenuFlyoutItem Text="摇杆"/>
+                        </MenuFlyoutSubItem>
+
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <!--
+
 -->
-    </Grid>
-
-
+        </Grid>
+    </Page.Content>
 </Page>

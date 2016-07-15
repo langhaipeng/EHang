@@ -32,6 +32,7 @@ using Windows.Data.Xml.Dom;
 using Windows.Devices.Geolocation;
 using Windows.Services.Maps;
 using Windows.UI.Notifications;
+using MetroLog;
 
 namespace CopterHelper
 {
@@ -86,8 +87,10 @@ namespace CopterHelper
                         return null;
                 }
             }
-            catch (TaskCanceledException)
+            catch (Exception EX)
             {
+                LogManagerFactory.DefaultLogManager.GetLogger("CopterHelper").Trace("GetCurrentLocationAsync:");
+                throw;
                 // Do nothing.
             }
             finally

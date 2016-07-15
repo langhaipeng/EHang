@@ -111,6 +111,7 @@
   <ItemGroup>
     <Compile Include="BackgroundTaskHelper.cs" />
     <Compile Include="BindableBase.cs" />
+    <Compile Include="MissionData.cs" />
     <Compile Include="CopterData.cs" />
     <Compile Include="CopterDataStore.cs" />
     <Compile Include="CopterHelper.cs" />

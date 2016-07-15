@@ -38,7 +38,8 @@ using System.Windows;
 using EHangApp.Common;
 using System.Collections.Generic;
 using Windows.UI.Xaml.Data;
-// The Blank Application template is documented at http://go.microsoft.com/fwlink/?LinkId=402347&clcid=0x409
+using MetroLog;
+using MetroLog.Targets;
 
 namespace EHangApp
 {
@@ -55,7 +56,16 @@ namespace EHangApp
         public App()
         {
             this.InitializeComponent();
-           
+
+        #if DEBUG
+            LogManagerFactory.DefaultConfiguration.AddTarget(LogLevel.Trace, LogLevel.Fatal, new FileStreamingTarget());
+        #else
+            LogManagerFactory.DefaultConfiguration.AddTarget(LogLevel.Error, LogLevel.Fatal, new FileStreamingTarget());
+        #endif
+
+            GlobalCrashHandler.Configure();
+
+
             var _container = SimpleIoc.Default;
 
             ServiceLocator.SetLocatorProvider(() => _container);
@@ -76,12 +86,12 @@ namespace EHangApp
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
 
-//#if DEBUG
-//            if (System.Diagnostics.Debugger.IsAttached)
-//            {
-//                this.DebugSettings.EnableFrameRateCounter = true;
-//            }
-//#endif
+#if DEBUG
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+               // this.DebugSettings.EnableFrameRateCounter = true;
+            }
+#endif
 
             Frame rootFrame = Window.Current.Content as Frame;
 
