@@ -105,6 +105,9 @@
     <Compile Include="Common\BooleanToVisibilityConverter.cs" />
     <Compile Include="Common\Helpers.cs" />
     <Compile Include="Common\MessengerAdapter.cs" />
+    <Compile Include="ContentShow.xaml.cs">
+      <DependentUpon>ContentShow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DronesSet.xaml.cs">
       <DependentUpon>DronesSet.xaml</DependentUpon>
     </Compile>
@@ -178,6 +181,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ContentShow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="DronesSet.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -191,7 +198,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="config\missiondata\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

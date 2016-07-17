@@ -51,7 +51,9 @@ namespace CopterHelper
             }
         }
 
-        private double longitude;
+        private string typeName;
+
+        private double longitude=0;
 
         public double Longitude
         {
@@ -66,9 +68,9 @@ namespace CopterHelper
             }
         }
 
-        private double altitude;
+        private float altitude=0;
 
-        public double Altitude
+        public float Altitude
         {
             get
             {
@@ -81,7 +83,7 @@ namespace CopterHelper
             }
         }
 
-        private double latitude;
+        private double latitude=0;
 
         public double Latitude
         {
@@ -191,13 +193,13 @@ namespace CopterHelper
 
         private string channelcommand;
 
-        private int param1;
+        private int param1=0;
 
-        private int param2;
+        private int param2=0;
 
-        private int param3;
+        private int param3=0;
 
-        private int param4;
+        private int param4=0;
 
         private bool isSelected;
         /// <summary>
@@ -224,6 +226,19 @@ namespace CopterHelper
             {
                 this.SetProperty(ref this.position, value);
                 this.OnPropertyChanged(nameof(Geopoint));
+            }
+        }
+
+        public string TypeName
+        {
+            get
+            {
+                return typeName;
+            }
+
+            set
+            {
+                typeName = value;
             }
         }
     }

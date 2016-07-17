@@ -109,8 +109,8 @@
             </Grid>
         </AppBar>
     </Page.TopAppBar>
-
-    <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}" Padding="5,40,5,5" VerticalAlignment="Stretch" Margin="0">
+   
+        <Grid Background="{ThemeResource ContentDialogBackgroundThemeBrush}" Padding="5,40,5,5" VerticalAlignment="Stretch" Margin="0">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="100"/>
@@ -128,8 +128,8 @@
                     <RowDefinition Height="200"/>
                 </Grid.RowDefinitions>
 
-               
-
+             
+                
                 <StackPanel Grid.Row="0" >
 
                     <Grid Background="{ThemeResource SystemControlHighlightListAccentLowBrush}" >
@@ -153,10 +153,14 @@
                             <RowDefinition/>
                             <RowDefinition/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="飞行器ID:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                        <TextBlock x:Name="currentdroneid" Grid.Row="0" Text="" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="1"  Text="状态:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                        <TextBlock x:Name="currentdronestatus" Grid.Row="1" Text="" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="飞行器ID:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1"  x:Name="currentdroneid" Text="" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="状态:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="currentdronestatus"  Text="" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
                     </Grid>
 
                 </StackPanel>
@@ -209,11 +213,11 @@
                             <ColumnDefinition></ColumnDefinition>
 
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Grid.Row="0" Name="SaveToDroneButton" Content="写入航线"  />
-                        <Button Grid.Column="1" Grid.Row="0"   Name="ClearButton" Content="清除航线"  />
-                        <Button  Grid.Column="2" Grid.Row="0" Name="ReadFromDroneButton" Content="读取航线"  />
-                        <Button Grid.Column="0" Grid.Row="1" Name="SaveToFileButton" Content="存为模板" Margin="0,5,0,0"  />
-                        <Button Grid.Column="1" Grid.Row="1" Name="OpenFileButton" Content="打开模板" Margin="0,5,0,0"  />
+                        <Button Grid.Column="0" Grid.Row="0" Name="SaveToDroneButton" Content="写入航线" Click="SaveToDroneButton_Click"  />
+                        <Button Grid.Column="1" Grid.Row="0"   Name="ClearButton" Content="清除航线" Click="ClearButton_Click"  />
+                        <Button  Grid.Column="2" Grid.Row="0" Name="ReadFromDroneButton" Content="读取航线" Click="ReadFromDroneButton_Click"  />
+                        <Button Grid.Column="0" Grid.Row="1" Name="SaveToFileButton" Content="存为模板" Margin="0,5,0,0" Click="SaveToFileButton_Click"  />
+                        <Button Grid.Column="1" Grid.Row="1" Name="OpenFileButton" Content="打开模板" Margin="0,5,0,0" Click="OpenFileButton_Click"  />
                     </Grid>
                 </StackPanel>
             </Grid>
@@ -242,9 +246,10 @@
                     </Grid>
                 </StackPanel>
                 <ScrollViewer VerticalScrollMode="Enabled" Grid.Row="1" Margin="0,10,0,5" >
-                    <StackPanel HorizontalAlignment="Left"  >
+                    <StackPanel Name="MissionPanel" HorizontalAlignment="Left"  >
                         <Grid Name="MissionInfo">
                             <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
                                 <RowDefinition></RowDefinition>
                                 <RowDefinition></RowDefinition>
                                 <RowDefinition></RowDefinition>
@@ -324,7 +329,19 @@
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="米"></TextBlock>
                                 </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Row="5" Name="SuspendPanel">
+                            <StackPanel Grid.Row="5" Name="HoverRadiusPanel">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="20"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"  Text="盘旋半径:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
+                                    <TextBox  Grid.Column="1" Text="{Binding Param3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="米"></TextBlock>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Row="6" Name="SuspendPanel">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="80"></ColumnDefinition>
@@ -336,7 +353,7 @@
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="秒"></TextBlock>
                                 </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Row="6" Name="CirclePanel">
+                            <StackPanel Grid.Row="7" Name="CirclePanel">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="80"></ColumnDefinition>
@@ -348,7 +365,7 @@
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="秒"></TextBlock>
                                 </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Row="7" Name="DirectPanel">
+                            <StackPanel Grid.Row="8" Name="DirectPanel">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="80"></ColumnDefinition>

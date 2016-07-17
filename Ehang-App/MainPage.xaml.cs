@@ -235,6 +235,8 @@ namespace EHangApp
             CopterHelper.CopterHelper.CancelGetCurrentLocation();
             CopterHelper.CopterHelper.Geolocator.StatusChanged -= Geolocator_StatusChanged;
             NetworkInformation.NetworkStatusChanged -= NetworkInformation_NetworkStatusChanged;
+
+            MainViewModel.currentCopterManager = ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name);
         }
 
       

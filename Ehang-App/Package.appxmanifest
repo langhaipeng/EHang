@@ -34,7 +34,9 @@
   </Applications>
   <Capabilities>
     <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer" />
     <uap:Capability Name="picturesLibrary" />
+    <uap:Capability Name="musicLibrary" />
     <DeviceCapability Name="location" />
     <DeviceCapability Name="bluetooth" />
     <DeviceCapability Name="proximity" />
