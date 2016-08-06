@@ -122,7 +122,10 @@ namespace CopterHelper
             catch (Exception e)
             {
                 LogManagerFactory.DefaultLogManager.GetLogger("CopterDataStore").Trace("GetSampleCopterDataAsync:", e);
-                throw;
+
+                MessageDialog diag = new MessageDialog("加载飞行器列表失败。");
+                await diag.ShowAsync();
+                
             }
             return locations;
         }
@@ -203,7 +206,7 @@ namespace CopterHelper
             ICopter copter = null;
             try
             {
-                var connection = new TcpConnection(hostName);
+                var connection = new EHang.Communication.UdpConnection(hostName);
              copter = new EHCopter(connection, SynchronizationContext.Current)
             {
                 Id = "UDP_" + hostName,

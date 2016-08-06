@@ -56,23 +56,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="InputMapItemTemplate" x:DataType="loc:CopterData">
-            <Grid>
-
-                <!-- The geopoint icon is used for the current location. -->
-                <TextBlock Text="&#xE1D2;" FontFamily="Segoe MDL2 Assets" FontSize="40" 
-                    Visibility="{x:Bind IsCurrentLocation, Converter={StaticResource BooleanToVisibilityConverter}}"
-                    maps:MapControl.Location="{x:Bind Geopoint, Mode=OneWay}" 
-                    maps:MapControl.NormalizedAnchorPoint="{x:Bind NormalizedAnchorPoint, Mode=OneWay}"/>
-
-                <!-- The custom map pin image is used for saved locations.  RightTapped="Image_RightTapped" -->
-                <Image Source="{x:Bind ImageSource, Mode=OneWay}" Width="68" Height="68" 
-                    Visibility="{x:Bind IsCurrentLocation, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Reverse}"
-                    maps:MapControl.Location="{x:Bind Geopoint, Mode=OneWay}" 
-                    maps:MapControl.NormalizedAnchorPoint="{x:Bind NormalizedAnchorPoint, Mode=OneWay}"/>
-
-            </Grid>
-        </DataTemplate>
+ 
     </Page.Resources>
 
     <Page.TopAppBar>
@@ -213,11 +197,13 @@
                             <ColumnDefinition></ColumnDefinition>
 
                         </Grid.ColumnDefinitions>
+                        
                         <Button Grid.Column="0" Grid.Row="0" Name="SaveToDroneButton" Content="写入航线" Click="SaveToDroneButton_Click"  />
                         <Button Grid.Column="1" Grid.Row="0"   Name="ClearButton" Content="清除航线" Click="ClearButton_Click"  />
                         <Button  Grid.Column="2" Grid.Row="0" Name="ReadFromDroneButton" Content="读取航线" Click="ReadFromDroneButton_Click"  />
                         <Button Grid.Column="0" Grid.Row="1" Name="SaveToFileButton" Content="存为模板" Margin="0,5,0,0" Click="SaveToFileButton_Click"  />
                         <Button Grid.Column="1" Grid.Row="1" Name="OpenFileButton" Content="打开模板" Margin="0,5,0,0" Click="OpenFileButton_Click"  />
+                        
                     </Grid>
                 </StackPanel>
             </Grid>
@@ -291,7 +277,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="经度:" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox Grid.Column="1"   Text="{Binding Longitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox Grid.Column="1"   Text="{Binding Longitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged"  />
                                 </Grid>
                             </StackPanel>
                             <StackPanel Grid.Row="2" Name="LongtitudePanel">
@@ -302,7 +288,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="纬度:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox Grid.Column="1" Text="{Binding Latitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox Grid.Column="1"   Text="{Binding Latitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged" />
                                 </Grid>
                             </StackPanel>
                             <StackPanel Grid.Row="3" Name="AltitudePanel">
@@ -313,7 +299,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="高度:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox  Grid.Column="1"  Text="{Binding Altitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox  Grid.Column="1"  Text="{Binding Altitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged" />
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="米"></TextBlock>
                                 </Grid>
                             </StackPanel>
@@ -325,7 +311,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="到达半径:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox  Grid.Column="1" Text="{Binding Param1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox  Grid.Column="1" Text="{Binding Param1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged" />
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="米"></TextBlock>
                                 </Grid>
                             </StackPanel>
@@ -337,7 +323,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="盘旋半径:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox  Grid.Column="1" Text="{Binding Param3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox  Grid.Column="1" Text="{Binding Param3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged" />
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="米"></TextBlock>
                                 </Grid>
                             </StackPanel>
@@ -349,7 +335,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="停留时间:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox  Grid.Column="1" Text="{Binding Param2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox  Grid.Column="1" Text="{Binding Param2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged" />
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="秒"></TextBlock>
                                 </Grid>
                             </StackPanel>
@@ -361,7 +347,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="圈数:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox  Grid.Column="1" Text="{Binding Param3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox  Grid.Column="1" Text="{Binding Param3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged" />
                                     <TextBlock Grid.Column="2"  VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold" Text="秒"></TextBlock>
                                 </Grid>
                             </StackPanel>
@@ -373,7 +359,7 @@
                                         <ColumnDefinition Width="20"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0"  Text="机头方向:" VerticalAlignment="Center" HorizontalAlignment="left" FontSize="16" FontWeight="Bold"/>
-                                    <TextBox  Grid.Column="1" Text="{Binding Param4, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" />
+                                    <TextBox  Grid.Column="1" Text="{Binding Param4, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="3" Width="160" TextChanged="TextBox_TextChanged"  />
                                 </Grid>
                             </StackPanel>
                             <!--

@@ -1,5 +1,6 @@
 ﻿<copters >
-  <copter name="1号机" type="bluetooth" hostname="(98:D3:31:90:1B:FE)"/>
-  <!--<copter name="1号机" type="udp" hostname="192.168.25.1"/>-->
+  <!--<copter name="1号机" type="bluetooth" hostname="(98:D3:31:90:1B:FE)"/>-->
+  <copter name="1号机" type="udp" hostname="192.168.25.1"/>
+  <!--<copter name="2号机" type="fake" hostname="192.168.25.1"/>-->
 
 </copters>

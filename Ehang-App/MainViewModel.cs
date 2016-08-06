@@ -7,7 +7,7 @@ namespace EHangApp
 {
     public class MainViewModel
     {
-       // public ICopterManager CopterManager { get; } = ServiceLocator.Current.GetInstance<ICopterManager>();
+        public ICopterManager CopterManager { get; } = ServiceLocator.Current.GetInstance<ICopterManager>();
 
         public static Dictionary<string,ICopterManager> copManagers=new Dictionary<string,ICopterManager>();
 

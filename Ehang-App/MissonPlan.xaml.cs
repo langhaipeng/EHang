@@ -29,6 +29,7 @@ using MetroLog.Targets;
 using System.Xml.Linq;
 using Windows.Data.Xml.Dom;
 using EHang.Copters;
+using System.Text.RegularExpressions;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -204,19 +205,31 @@ namespace EHangApp
 
             if (e.NavigationMode == NavigationMode.New)
             {
-                CopterHelper.CopterHelper.Geolocator.StatusChanged += Geolocator_StatusChanged;
-                combox_MissionType.SelectionChanged += ComboBox_SelectionChanged;
-                if (MainViewModel.currentCopterManager != null)
+                try
                 {
-                    this.currentdroneid.Text = MainViewModel.currentCopterManager.Copter.Id;
-                    if (MainViewModel.currentCopterManager.Copter.IsConnected)
+                    
+                    CopterHelper.CopterHelper.Geolocator.StatusChanged += Geolocator_StatusChanged;
+                    combox_MissionType.SelectionChanged += ComboBox_SelectionChanged;
+                    
+                    if (MainViewModel.currentCopterManager != null)
                     {
-                        this.currentdronestatus.Text = "已连接";
+                        this.currentdroneid.Text = MainViewModel.currentCopterManager.Copter.Id;
+                        if (MainViewModel.currentCopterManager.Copter.IsConnected)
+                        {
+                            this.currentdronestatus.Text = "已连接";
+                        }
+                        else
+                        {
+                            this.currentdronestatus.Text = "未连接";
+                        }
                     }
-                    else
-                    {
-                        this.currentdronestatus.Text = "未连接";
-                    }
+                    
+                }
+                catch (Exception ex)
+                {
+                    MessageDialog diag = new MessageDialog("定位飞行计划页面出错。");
+                    await diag.ShowAsync();
+
                 }
             }
 
@@ -384,6 +397,7 @@ namespace EHangApp
 
         private async void SaveToDroneButton_Click(object sender, RoutedEventArgs e)
         {
+            
             if ((MainViewModel.currentCopterManager != null) && (MainViewModel.currentCopterManager.Copter.IsConnected))
             {
                 if (!MainViewModel.currentCopterManager.Copter.State.Equals(CopterState.Locked))
@@ -415,10 +429,10 @@ namespace EHangApp
                     int i = 0;
                     while ((!isSuccessful) && (i < 10))
                     {
-                        isSuccessful = await MainViewModel.currentCopterManager.Copter.WriteMissionListAsync(missions, 5000);
+                        isSuccessful = await MainViewModel.currentCopterManager.Copter.WriteMissionListAsync(missions, 1000);
                         i++;
                     }
-                    await Task.Delay(5000);
+                    await Task.Delay(10000);
 
                     if (!isSuccessful)
                     {
@@ -440,6 +454,7 @@ namespace EHangApp
                 MessageDialog diag = new MessageDialog("请先连接一架飞行器。");
                 await diag.ShowAsync();
             }
+            
         } 
          private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
@@ -450,6 +465,7 @@ namespace EHangApp
 
         private async void ReadFromDroneButton_Click(object sender, RoutedEventArgs e)
         {
+            
             if ((MainViewModel.currentCopterManager != null) && (MainViewModel.currentCopterManager.Copter.IsConnected))
             {
                 if (!MainViewModel.currentCopterManager.Copter.State.Equals(CopterState.Locked))
@@ -461,6 +477,7 @@ namespace EHangApp
                 else
                 {
                     var missions = await MainViewModel.currentCopterManager.Copter.RequestMissionListAsync(5000);
+                    await Task.Delay(5000);
                     string ret = string.Empty;
                     foreach (IMission mission in missions)
                     {
@@ -482,11 +499,12 @@ namespace EHangApp
                 MessageDialog diag = new MessageDialog("请先连接一架飞行器。");
                 await diag.ShowAsync();
             }
-
+    
         }
 
         private async void SaveToFileButton_Click(object sender, RoutedEventArgs e)
         {
+            
             ContentDialog content_dialog = new ContentDialog()
             {
                 Title = "航线定义",
@@ -600,6 +618,17 @@ namespace EHangApp
                 MessageDialog diag = new MessageDialog("保存航线模板失败。");
                 await diag.ShowAsync();
 
+            }
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textbox = (TextBox)sender;
+            if (!Regex.IsMatch(textbox.Text, "^\\d*\\.?\\d*$") && textbox.Text != "")
+            {
+                int pos = textbox.SelectionStart - 1;
+                textbox.Text = textbox.Text.Remove(pos, 1);
+                textbox.SelectionStart = pos;
             }
         }
     }

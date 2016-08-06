@@ -191,7 +191,9 @@ namespace EHangApp
                 {
                     if ((copterdata as CopterData).Name == copter.Name)
                     {
-                        (copterdata as CopterData).Position = new BasicGeoposition { Latitude = copter.Latitude, Longitude = copter.Longitude };
+                        double[] inputGeopoint = GpsCorrect.transform(copter.Latitude, copter.Longitude);
+
+                        (copterdata as CopterData).Position = new BasicGeoposition { Latitude = inputGeopoint[0], Longitude = inputGeopoint[1] };
                     }
                 }
             }
@@ -235,8 +237,10 @@ namespace EHangApp
             CopterHelper.CopterHelper.CancelGetCurrentLocation();
             CopterHelper.CopterHelper.Geolocator.StatusChanged -= Geolocator_StatusChanged;
             NetworkInformation.NetworkStatusChanged -= NetworkInformation_NetworkStatusChanged;
-
-            MainViewModel.currentCopterManager = ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name);
+            if (this.LocationsView.SelectedItem != null)
+            {
+                MainViewModel.currentCopterManager = ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name);
+            }
         }
 
       
@@ -320,7 +324,7 @@ namespace EHangApp
             {
                 var x = e.Message;
             }
-            if (isSuccessful && positions.Count < 2) this.InputMap.ZoomLevel = 12;
+            if (isSuccessful && positions.Count < 2) this.InputMap.ZoomLevel = 20;
             else if (!isSuccessful && positions.Count > 0)
             {
                 this.InputMap.Center = new Geopoint(positions[0]);
@@ -371,7 +375,10 @@ namespace EHangApp
         {
             //var location = new CopterData { Position = args.Location.Position };
             
-            var pos = args.Location;
+            
+            double[] inputGeopoint = GpsCorrect.untransform(args.Location.Position.Latitude, args.Location.Position.Longitude);
+            BasicGeoposition pos = new BasicGeoposition { Latitude = inputGeopoint[0], Longitude = inputGeopoint[1] };
+            
             var _copterManager = ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name);
             //InputMap.GetLocationFromOffset(args.Location.Position, out pos);
             if (!missionMode)
@@ -382,7 +389,7 @@ namespace EHangApp
                 string msg = "当前飞机位置：高度-" + _copterManager.Copter.Altitude.ToString() + ";\n";
                 msg += "经度-" + _copterManager.Copter.Longitude.ToString() + ";纬度-" + _copterManager.Copter.Latitude.ToString() + ";\n";
                 msg += "要飞往位置：距离-" + this.CalcDistance(_copterManager.Copter, pos) + "米;\n";
-                msg += "经度-" + pos.Position.Longitude.ToString() + ";纬度-" + pos.Position.Latitude.ToString() + ";\n";
+                msg += "经度-" + pos.Longitude.ToString() + ";纬度-" + pos.Latitude.ToString() + ";\n";
                 var dialog = new ContentDialog()
                 {
                     Title = "消息提示",
@@ -396,7 +403,7 @@ namespace EHangApp
                 ContentDialogResult result = await dialog.ShowAsync();
                 if (result == ContentDialogResult.Primary)
                 {
-                    await _copterManager.FlyToAsync(pos.Position.Latitude, pos.Position.Longitude);
+                    await _copterManager.FlyToAsync(pos.Latitude, pos.Longitude);
                     /*
                     bool isFly = await _copterManager.CheckStatusAndFlyToAsync(pos.Position.Latitude, pos.Position.Longitude);
                     if (!isFly)
@@ -422,12 +429,12 @@ namespace EHangApp
             {
 
                 string retMsg = "飞机定位为：" + _copterManager.Copter.Latitude+"-"+_copterManager.Copter.Longitude+"-"+_copterManager.Copter.Altitude + ";\n";
-                retMsg += "选择的点为："+pos.Position.Latitude+"-"+pos.Position.Longitude+"-"+pos.Position.Altitude;
+                retMsg += "选择的点为："+pos.Latitude+"-"+pos.Longitude+"-"+pos.Altitude;
                 MessageDialog diag1 = new MessageDialog(retMsg);
                 await diag1.ShowAsync();
 
-                var inst = GeographyUtils.CalcDistance(pos.Position.Latitude, pos.Position.Longitude, pos.Position.Altitude, _copterManager.Copter.Latitude, _copterManager.Copter.Longitude, _copterManager.Copter.Altitude);
-                var  pointStr = pos.Position.Latitude + "-" + pos.Position.Longitude+"-距离："+ inst+"米";
+                var inst = GeographyUtils.CalcDistance(pos.Latitude, pos.Longitude, pos.Altitude, _copterManager.Copter.Latitude, _copterManager.Copter.Longitude, _copterManager.Copter.Altitude);
+                var  pointStr = pos.Latitude + "-" + pos.Longitude+"-距离："+ inst+"米";
                 MessageDialog diag = new MessageDialog("要把"+pointStr+"加入到航点列表吗？");
                 diag.Commands.Add(new UICommand("确定", cmd => { }, commandId: 0));
                 diag.Commands.Add(new UICommand("取消", cmd => { }, commandId: 1));
@@ -436,18 +443,18 @@ namespace EHangApp
                 IUICommand cmd1 = await diag.ShowAsync();
                 if (cmd1.Label == "确定")
                 {
-                    (this.LocationsView.SelectedItem as CopterData).Missions.Add(Mission.CreateWaypointMission(pos.Position.Latitude, pos.Position.Longitude,20));
+                    (this.LocationsView.SelectedItem as CopterData).Missions.Add(Mission.CreateWaypointMission(pos.Latitude, pos.Longitude,20));
                 }
             }
         }
 
-        private void setMapIconAndLine(Geopoint pos,ICopterManager _copterManager)
+        private void setMapIconAndLine(BasicGeoposition pos,ICopterManager _copterManager)
         {
 
             var copterdata = (this.SelectedLocation as CopterData);
             //插入图片，并画线
             MapIcon mapIcon1 = new MapIcon();
-            mapIcon1.Location = pos;
+            mapIcon1.Location = new Geopoint(pos);
             
             mapIcon1.NormalizedAnchorPoint = new Point(0.5, 1.0);
             mapIcon1.Title = "目的地";
@@ -461,7 +468,7 @@ namespace EHangApp
                     MapPolyline mapPolyline = new MapPolyline();
             mapPolyline.Path = new Geopath(new List<BasicGeoposition>() {
          new BasicGeoposition() {Latitude=_copterManager.Copter.Latitude, Longitude=_copterManager.Copter.Longitude },
-         new BasicGeoposition() {Latitude=pos.Position.Latitude, Longitude=pos.Position.Longitude },
+         new BasicGeoposition() {Latitude=pos.Latitude, Longitude=pos.Longitude },
 
    });
 
@@ -572,8 +579,31 @@ namespace EHangApp
                 //double x2 = copter.Latitude;
 
                 // ICopter copter = await Foo();
-               // (this.SelectedLocation as CopterData).Copter = copter;
-                await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).ConnectAsync(copter);
+                // (this.SelectedLocation as CopterData).Copter = copter;
+                try
+                {
+                    await ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).ConnectAsync(copter);
+                    await Task.Delay(3000);
+                }
+                catch (Exception ex)
+                {
+                    MessageDialog diag = new MessageDialog("连接飞行器失败，请检查日志。");
+                    await diag.ShowAsync();
+
+                }
+                CopterData currentCopter= this.LocationsView.SelectedItem as CopterData;
+                if ((currentCopter.Copter.Latitude != 0) && (currentCopter.Copter.Longitude!=0))
+                {
+                    double[] inputGeopoint = GpsCorrect.transform(currentCopter.Copter.Latitude, currentCopter.Copter.Longitude);
+                    currentCopter.Position = new BasicGeoposition { Latitude = inputGeopoint[0], Longitude = inputGeopoint[1] };
+                }
+                else
+                {
+                    await currentCopter.Copter.DisconnectAsync();
+                    MessageDialog diag = new MessageDialog("当前无法取得飞行器经纬度，请重新连接。");
+                    await diag.ShowAsync();
+
+                }
             }
             else
             {
@@ -712,29 +742,63 @@ namespace EHangApp
         }
 
 
-        public  double CalcDistance(ICopter copter, Geopoint loc2)
+        public  double CalcDistance(ICopter copter, BasicGeoposition loc2)
         {
             if (copter == null)
             {
                 throw new ArgumentNullException(nameof(copter));
             }
-            if (loc2 == null)
-            {
-                throw new ArgumentNullException(nameof(loc2));
-            }
-            return GeographyUtils.CalcDistance(copter.Latitude, copter.Longitude, copter.Altitude, loc2.Position.Latitude, loc2.Position.Longitude, copter.Altitude);
+           
+            return GeographyUtils.CalcDistance(copter.Latitude, copter.Longitude, copter.Altitude, loc2.Latitude, loc2.Longitude, copter.Altitude);
         }
 
         private async void MenuFlyoutItem_Input_Click(object sender, RoutedEventArgs e)
         {
-            var copter =  (ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).Copter as EHCopter);
-            var missions= await copter.RequestMissionListAsync(5000);
+            var copter = (ServiceLocator.Current.GetInstance<ICopterManager>((this.LocationsView.SelectedItem as CopterData).Name).Copter as EHCopter);
+            IEnumerable<IMission> missions = null;
+            int i = 0;
+            bool success = false;
+            while (!success)
+            {
+                if (i < 5)
+                {
+                    missions = await copter.RequestMissionListAsync(5000);
+                    if (missions != null)
+                    {
+                        if (missions.Count() > 0)
+                        {
+                            success = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                i++;
+
+            }
+            if (!success)
+            {
+                MessageDialog diag1 = new MessageDialog("读取航线数据失败。尝试次数：" + i);
+                await diag1.ShowAsync();
+
+            }
+            else
+            {
+                string retMsg = "读取航线成功。尝试次数" + i;
+                MessageDialog diag1 = new MessageDialog(retMsg);
+                await diag1.ShowAsync();
+            }
+
+            if (missions != null) { 
             string ret = string.Empty;
             foreach (IMission mission in missions)
             {
                 if (mission.Command.ToString().ToUpper().Equals("WAYPOINT"))
                 {
-                    ret += mission.Sequence + "-" + mission.Command.ToString() + "-" + mission.Latitude + "-" + mission.Altitude  + "-" + mission.Longitude+"\n";
+                    ret += mission.Sequence + "-" + mission.Command.ToString() + "-" + mission.Latitude + "-" + mission.Altitude + "-" + mission.Longitude + "\n";
                 }
                 else
                 {
@@ -743,7 +807,7 @@ namespace EHangApp
             }
             MessageDialog diag = new MessageDialog(ret);
             await diag.ShowAsync();
-
+             }
         }
 
         private async void MenuFlyoutItem_Set_Click(object sender, RoutedEventArgs e)
@@ -760,6 +824,7 @@ namespace EHangApp
             missionMode = false;
 
             var missions = (this.LocationsView.SelectedItem as CopterData).Missions;
+            
             missions.Add(Mission.CreateReturnToLaunchMission());
            missions.Add(Mission.CreateLandMission());
             string ret = string.Empty;
@@ -792,13 +857,13 @@ namespace EHangApp
 
                 if (!isSuccessful)
                 {
-                    MessageDialog diag1 = new MessageDialog("写入航线数据失败。" + copter1.StatusText);
+                    MessageDialog diag1 = new MessageDialog("写入航线数据失败。尝试次数：" +i);
                     await diag1.ShowAsync();
 
                 }
                 else
                 {
-                    string retMsg =  "-导入成功。";
+                    string retMsg =  "-导入成功。尝试次数"+i;
                     MessageDialog diag1 = new MessageDialog(retMsg);
                     await diag1.ShowAsync();
                 }
